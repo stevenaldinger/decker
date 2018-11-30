@@ -1,0 +1,19 @@
+---
+version: '3'
+services:
+  decker:
+    container_name: decker
+    hostname: decker
+    image: "stevenaldinger/decker"
+    build:
+      context: ../
+      dockerfile: build/package/Dockerfile
+    command:
+    - "decker"
+    - "./decker-config/example.hcl"
+    restart: "no"
+    environment:
+      DECKER_TARGET_HOST: "example.com"
+    volumes:
+    - ../decker-reports/:/tmp/reports/
+    - ../examples/:/decker-config/
