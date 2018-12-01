@@ -71,7 +71,8 @@ Refer to `Directory Structure` below for an overview of the go code.
 
 1. (on host machine): `make docker_build`
 2. (on host machine): `make docker_run` (will start docker container and open an interactive bash session)
-3. (inside container): `make build`
+3. (inside container): `dep ensure -v`
+3. (inside container): `make build_all`
 4. (inside container): `make run`
 
 ## Initialize git hooks
