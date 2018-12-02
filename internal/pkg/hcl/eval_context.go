@@ -31,6 +31,7 @@ func getHCLEvalContextVarsFromEnv() *map[string]cty.Value {
 // cty.Value to be used in an hcl EvalContext
 func BuildEvalContextFromMap(m *map[string]string) *map[string]cty.Value {
 	var variables = map[string]cty.Value{}
+
 	for key, value := range *m {
 		variables[key] = cty.StringVal(value)
 	}

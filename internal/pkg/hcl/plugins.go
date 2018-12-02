@@ -41,8 +41,6 @@ func parsePluginHCLFromFile(hclFilePath string) (*PluginConfig, *hcl.BodySchema)
 	pluginInputAttributes := []hcl.AttributeSchema{}
 
 	for _, element := range hclConfig.Inputs {
-		// should eventually use element.Type and element.Default to support types
-		// other than string and to support unrequired inputs with default values
 		pluginInputAttributes = append(pluginInputAttributes, hcl.AttributeSchema{Name: element.Name})
 	}
 
@@ -64,11 +62,23 @@ func parsePluginHCLFromFile(hclFilePath string) (*PluginConfig, *hcl.BodySchema)
 	return hclConfig, pluginInputSchema
 }
 
+// GetPluginInputNames takes an hcl.PluginConfig and returns an array of the
+// names of its inputs (for building a resource block's schema)
+func GetPluginInputNames(pluginConfig *PluginConfig) []string {
+	inputNames := []string{}
+
+	for _, element := range pluginConfig.Inputs {
+		inputNames = append(inputNames, element.Name)
+	}
+
+	return inputNames
+}
+
 // GetPluginContent takes a *hcl.Block and a path to an HCL config file and
 // returns the BodyContent
-func GetPluginContent(block *hcl.Block, hclFilePath string) *hcl.BodyContent {
-	// hcl_plugin_config, pluginInputSchema
-	_, pluginInputSchema := parsePluginHCLFromFile(hclFilePath)
+func GetPluginContent(block *hcl.Block, hclFilePath string) (*PluginConfig, *hcl.BodyContent) {
+	// hclConfig, pluginInputSchema
+	hclConfig, pluginInputSchema := parsePluginHCLFromFile(hclFilePath)
 
 	pluginContent, pluginDiags := block.Body.Content(pluginInputSchema)
 
@@ -77,12 +87,12 @@ func GetPluginContent(block *hcl.Block, hclFilePath string) *hcl.BodyContent {
 		fmt.Println("Error getting Plugin block's content.", pluginDiags)
 	}
 
-	return pluginContent
+	return hclConfig, pluginContent
 }
 
 // CreateInputsMap decodes the HCL attributes with an evaluation context
 // consisting of the outputs of all previously run plugins
-func CreateInputsMap(attributes hcl.Attributes, evalVals *map[string]*map[string]cty.Value) map[string]string {
+func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, evalVals *map[string]*map[string]cty.Value) map[string]string {
 	// declare inputsMap with default "plugin_enabled" = true
 	// the rest is pulled from the specific plugin's HCL file "input" blocks
 	// ex: "internal/app/decker/plugins/nslookup/nslookup.hcl"
@@ -90,8 +100,27 @@ func CreateInputsMap(attributes hcl.Attributes, evalVals *map[string]*map[string
 		"plugin_enabled": "true",
 	}
 
+	var hclInputs = map[string]PluginInputConfig{}
+
+	for _, element := range inputs {
+		hclInputs[element.Name] = element
+	}
+
+	// create a map of attribute names to inputs and get Input.Type to determine
+	// which DecodeHCL...Attribute function to call
+	// pass in default in case parsing fails
 	for key, attribute := range attributes {
-		inputsMap[key] = DecodeHCLAttribute(attribute, evalVals)
+		inputType := hclInputs[key].Type
+		// inputDefault := hclInputs[key].Default
+
+		if inputType == "list" {
+			inputsMap[key] = DecodeHCLListAttribute(attribute, evalVals)
+		} else if inputType == "map" {
+			inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals)
+		} else {
+			// strings and booleans
+			inputsMap[key] = DecodeHCLAttribute(attribute, evalVals)
+		}
 	}
 
 	return inputsMap

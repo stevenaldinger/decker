@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/stevenaldinger/decker/internal/pkg/dependencies"
@@ -27,9 +26,9 @@ func main() {
 
 		pluginHCLPath := paths.GetPluginHCLFilePath(resourcePlugin)
 
-		pluginContent := hcl.GetPluginContent(block, pluginHCLPath)
+		hclConfig, pluginContent := hcl.GetPluginContent(block, pluginHCLPath)
 
-		inputsMap := hcl.CreateInputsMap(pluginContent.Attributes, &evalCtxVals)
+		inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals)
 
 		// declare a new empty map to be passed into the plugin
 		var resultsMap = map[string]string{}
