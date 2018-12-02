@@ -7,7 +7,8 @@ import (
 )
 
 func getResourceContent(block *hcl.Block) *hcl.BodyContent {
-	resourceBlockSchema := GetResourceBlockSchema()
+	pluginName := block.Labels[0]
+	resourceBlockSchema := GetResourceBlockSchema(pluginName)
 
 	// content, remain, diags
 	content, _, diags := block.Body.PartialContent(resourceBlockSchema)

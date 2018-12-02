@@ -2,6 +2,7 @@ package hcl
 
 import (
 	"github.com/hashicorp/hcl2/hcl"
+	"github.com/stevenaldinger/decker/internal/pkg/paths"
 )
 
 // PluginInputConfig is used in conjunction with gohcl to decode HCL attributes
@@ -87,18 +88,25 @@ func GetConfigFileSchema() *hcl.BodySchema {
 	return configFileSchema
 }
 
-// GetResourceBlockSchema returns an hcl BodySchema that can be used to decode
-// the "resource" blocks in an HCL config file
-func GetResourceBlockSchema() *hcl.BodySchema {
+// GetResourceBlockSchema takes a plugin name, determines its schema based
+// on its HCL file's inputs, and returns the hcl.BodySchema which can be used
+// to decode the "resource" blocks in an HCL config file
+func GetResourceBlockSchema(pluginName string) *hcl.BodySchema {
+	// can probably handle this better / in a difference spot so the HCL file
+	// doesn't need to be read in multiple times
+	hclFilePath := paths.GetPluginHCLFilePath(pluginName)
+	pluginConfig := parsePluginHCL(hclFilePath)
+
+	inputNames := GetPluginInputNames(pluginConfig)
+
+	pluginInputAttributes := []hcl.AttributeSchema{}
+
+	for _, element := range inputNames {
+		pluginInputAttributes = append(pluginInputAttributes, hcl.AttributeSchema{Name: element})
+	}
+
 	resourceBlockSchema := &hcl.BodySchema{
-		Attributes: []hcl.AttributeSchema{
-			{
-				Name: "host",
-			},
-			{
-				Name: "plugin_enabled",
-			},
-		},
+		Attributes: pluginInputAttributes,
 	}
 
 	return resourceBlockSchema
