@@ -17,20 +17,18 @@ type plugin string
 // resultsMap{
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string] []string) {
 	var (
-		cmdOut []byte
-		err    error
+		cmdOut    []byte
+		err       error
 	)
 
-	targetHost := (*inputsMap)["host"]
-
-	cmdName := "wpscan"
-	cmdArgs := []string{"--url", "http://" + targetHost, "--enumerate", "u", "--no-banner"}
+	cmdName := "sh"
+	cmdArgs := []string{"-c"}
+	cmdArgs = append(cmdArgs, (*inputsMap)["command"])
 
 	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
-		fmt.Fprintln(os.Stderr, "There was an error running wpscan: ", err)
-		fmt.Println(cmdName, cmdArgs)
+		fmt.Fprintln(os.Stderr, "There was an error running shell command: ", err)
 		return
 	}
 

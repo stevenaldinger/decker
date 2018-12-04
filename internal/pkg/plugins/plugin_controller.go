@@ -12,7 +12,7 @@ import (
 // of inputs and an empty map of outputs that the Plugin is expected to populate
 type Plugin interface {
 	// Run(inputsMap, resultsMap)
-	Run(*map[string]string, *map[string]string)
+	Run(*map[string]string, *map[string]string, *map[string][]string)
 }
 
 // runPlugin takes the name of a plugin, a map of inputs, and an empty map for results,
@@ -20,7 +20,7 @@ type Plugin interface {
 // expected to be in ./internal/app/decker/plugins/PLUGIN_NAME and the .so file
 // is expected to be PLUGIN_NAME.so) and call it with the maps supplied to
 // it as arguments.
-func runPlugin(name string, inputsMap, resultsMap *map[string]string) {
+func runPlugin(name string, inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
 	// module path
 	path, err := os.Executable()
 	if err != nil {
@@ -53,15 +53,15 @@ func runPlugin(name string, inputsMap, resultsMap *map[string]string) {
 		os.Exit(1)
 	}
 
-	plugin.Run(inputsMap, resultsMap)
+	plugin.Run(inputsMap, resultsMap, resultsListMap)
 }
 
 // RunIfEnabled takes the name of a plugin, a map of inputs, and an empty map for results,
 // and will run the plugin if its inputs map does not contain plugin_enabled == "false".
-func RunIfEnabled(pluginName string, inputsMap, resultsMap *map[string]string) bool {
+func RunIfEnabled(pluginName string, inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) bool {
 	// only run the plugin if plugin_enabled != "false"
 	if (*inputsMap)["plugin_enabled"] != "false" {
-		runPlugin(pluginName, inputsMap, resultsMap)
+		runPlugin(pluginName, inputsMap, resultsMap, resultsListMap)
 
 		return true
 	}

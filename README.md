@@ -30,6 +30,26 @@ resource "sslscan" "sslscan" {
 }
 ```
 
+Run a plugin for each item in a list:
+
+```hcl
+variable "target_host" {
+  type = "string"
+}
+resource "nslookup" "nslookup" {
+  host = "${var.target_host}"
+  dns_server = "8.8.4.4"
+}
+resource "metasploit" "metasploit" {
+  for_each = "${nslookup.ip_address}"
+  exploit = "auxiliary/scanner/portscan/tcp"
+  options = {
+    RHOSTS = "${each.key}/32"
+    INTERFACE = "eth0"
+  }
+}
+```
+
 ## Why the name decker?
 
 My friend [Courtney](https://github.com/courtneymiller2010) came to the rescue when I was struggling to come up with a name and found [decker](http://www.catb.org/esr/sf-words/glossary.html#decker) in a [SciFi word glossary](http://www.catb.org/esr/sf-words/glossary.html)... and it sounded cool.

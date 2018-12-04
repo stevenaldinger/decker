@@ -74,6 +74,25 @@ func GetPluginInputNames(pluginConfig *PluginConfig) []string {
 	return inputNames
 }
 
+// GetPluginAttributes returns a list of the plugin's attributes. This is used
+// to determine whether or not for_each is set so main.go loops over the plugin
+// instead of running it once.
+func GetPluginAttributes(block *hcl.Block) []string {
+	var attributes = []string{}
+
+	attrs, diags := block.Body.JustAttributes()
+
+	for attr := range attrs {
+		attributes = append(attributes, attr)
+	}
+
+	if diags.HasErrors() {
+		fmt.Println("Error getting plugin attributes:", diags)
+	}
+
+	return attributes
+}
+
 // GetPluginContent takes a *hcl.Block and a path to an HCL config file and
 // returns the BodyContent
 func GetPluginContent(block *hcl.Block, hclFilePath string) (*PluginConfig, *hcl.BodyContent) {

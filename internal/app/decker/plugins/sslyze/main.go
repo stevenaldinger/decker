@@ -17,7 +17,7 @@ type plugin string
 // resultsMap{
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
 	var (
 		cmdOut []byte
 		err    error

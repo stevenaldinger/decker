@@ -104,6 +104,8 @@ RUN apt-get update \
       ca-certificates \
       dnsutils \
       git \
+      metasploit-framework \
+      netcat \
       nmap \
       python3 \
       python3-pip \

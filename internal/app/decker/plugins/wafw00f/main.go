@@ -20,7 +20,7 @@ type plugin string
 //  "raw_output": "...",
 // 	"waf_detected": "true",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
 	var (
 		cmdOut []byte
 		err    error

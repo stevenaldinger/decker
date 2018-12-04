@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/t94j0/nmap"
 	"strconv"
+	"strings"
 )
 
 type plugin string
@@ -21,8 +22,8 @@ type plugin string
 //  "443": "open",
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
-	targetHost := (*inputsMap)["host"]
+func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+	targetHost := strings.TrimSpace((*inputsMap)["host"])
 
 	scan, _ := nmap.Init().AddHosts(targetHost).Run()
 	host, _ := scan.GetHost(targetHost)
