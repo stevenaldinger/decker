@@ -29,11 +29,20 @@ func getHCLEvalContextVarsFromEnv() *map[string]cty.Value {
 
 // BuildEvalContextFromMap takes a *map[string]string and returns a map of
 // cty.Value to be used in an hcl EvalContext
-func BuildEvalContextFromMap(m *map[string]string) *map[string]cty.Value {
+func BuildEvalContextFromMap(m *map[string]string, lm *map[string][]string) *map[string]cty.Value {
 	var variables = map[string]cty.Value{}
 
 	for key, value := range *m {
 		variables[key] = cty.StringVal(value)
+	}
+
+	for key, value := range *lm {
+		var listVars = []cty.Value{}
+		for _, listVal := range value {
+			listVars = append(listVars, cty.StringVal(listVal))
+		}
+
+		variables[key] = cty.ListVal(listVars)
 	}
 
 	return &variables

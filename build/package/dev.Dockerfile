@@ -32,19 +32,66 @@ RUN apt-get update \
  && bundle install \
  && rake install
 
-# whois - whois plugin
-# python-pip - sslyze plugin
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update \
  && apt-get install -y \
-      python3 \
-      python3-pip \
+      net-tools \
       python-pip \
+      software-properties-common \
       whois \
+      python3
+
+# These errors happen with other python-3.6 repos but things seem to work alright
+# so just ignore on repo add/remove with ";" instead of using "&&"
+# E: Failed to fetch http://ppa.launchpad.net/jonathonf/python-3.6/ubuntu/dists/disco/main/binary-amd64/Packages  404  Not Found
+# E: Some index files failed to download. They have been ignored, or old ones used instead.
+RUN apt-get update \
+ # these make sure pip3 gets built right
+ && apt-get install -y \
+      libreadline-gplv2-dev \
+      libncursesw5-dev \
+      libssl-dev \
+      libsqlite3-dev \
+      tk-dev \
+      libgdbm-dev \
+      libc6-dev \
+      libbz2-dev \
+ && cd /opt \
+ && wget https://www.python.org/ftp/python/3.6.7/Python-3.6.7.tgz \
+ && tar -xvf Python-3.6.7.tgz \
+ && cd Python-3.6.7 \
+ && ./configure \
+ && make \
+ && make install \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
  && pip install --upgrade setuptools \
  && pip install --upgrade sslyze \
  && pip3 install --upgrade setuptools
+
+# RUN apt-get update \
+#  && apt-get install -y \
+#       python3-pip \
+#  && apt-get clean \
+#  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+#  && pip install --upgrade setuptools \
+#  && pip install --upgrade sslyze \
+#  && pip3 install --upgrade setuptools
+
+# whois - whois plugin
+# python-pip - sslyze plugin
+# RUN apt-get update \
+#  && apt-get install -y \
+#       python3 \
+#       python3-pip \
+#       python-pip \
+#       whois \
+#  && apt-get clean \
+#  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+#  && pip install --upgrade setuptools \
+#  && pip install --upgrade sslyze \
+#  && pip3 install --upgrade setuptools
 
 # The harvester download and dependencies
 RUN git clone https://github.com/laramies/theHarvester.git /usr/bin/theHarvester \
@@ -88,8 +135,51 @@ WORKDIR /go/src/github.com/stevenaldinger/$APP_NAME
 
 RUN go get -u golang.org/x/lint/golint
 
-# COPY . .
-#
-# RUN dep ensure -v
+RUN echo "Backing up /etc/apt/sources.list..." \
+ && cp -a /etc/apt/sources.list /etc/apt/sources.list.bak \
+ && echo "Adding Kali sources to /etc/apt/sources.list..." \
+ && echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list \
+ && echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get install -y metasploit-framework --allow-unauthenticated \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+ && echo "Restoring /etc/apt/sources.list..." \
+ && rm /etc/apt/sources.list \
+ && mv /etc/apt/sources.list.bak /etc/apt/sources.list
+
+RUN git clone --single-branch -b feature/support-noninteractive https://www.github.com/stevenaldinger/routersploit /usr/bin/routersploit \
+ && cd /usr/bin/routersploit \
+ && python3 -m pip install -r requirements.txt
+
+# doesn't work without better wireless adapter
+# RUN apt-get update \
+#  && apt-get install -y dnsmasq \
+#  && git clone https://github.com/wifiphisher/wifiphisher.git /usr/bin/wifiphisher \
+#  && cd /usr/bin/wifiphisher \
+#  && python setup.py install
+
+RUN apt-get update \
+ && apt-get install -y \
+      pciutils \
+      aircrack-ng \
+      kmod \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN echo "Backing up /etc/apt/sources.list..." \
+ && cp -a /etc/apt/sources.list /etc/apt/sources.list.bak \
+ && echo "Adding Kali sources to /etc/apt/sources.list..." \
+ && echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list \
+ && echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get install -y bluelog --allow-unauthenticated \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+ && echo "Restoring /etc/apt/sources.list..." \
+ && rm /etc/apt/sources.list \
+ && mv /etc/apt/sources.list.bak /etc/apt/sources.list
+
+COPY . .
 
 CMD ["bash"]

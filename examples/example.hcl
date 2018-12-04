@@ -10,9 +10,11 @@ resource "nslookup" "nslookup" {
   dns_server = "8.8.4.4"
 }
 resource "nmap" "nmap" {
-  host = "${var.target_host}"
+  for_each = "${nslookup.ip_address}"
+  host = "${each.key}"
   plugin_enabled = "true"
 }
+
 resource "sslscan" "sslscan" {
   host = "${var.target_host}"
   plugin_enabled = "${nmap.443 == "open"}"

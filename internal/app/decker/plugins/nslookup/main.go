@@ -34,7 +34,7 @@ type plugin string
 //  "ip_address": "172.217.11.142",
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
 	var (
 		cmdOut          []byte
 		err             error
@@ -82,6 +82,8 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
 		}
 	}
 
+	var ipAddList = []string{}
+	(*resultsListMap)["ip_address"] = ipAddList
 	// parse out host info
 	for _, line := range outputByLine {
 		if strings.Contains(line, "Name:") {
@@ -91,7 +93,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string) {
 
 		if strings.Contains(line, "Address:") {
 			hostAddress := strings.TrimSpace(strings.Split(line, ":")[1])
-			(*resultsMap)["ip_address"] = hostAddress
+			(*resultsListMap)["ip_address"] = append((*resultsListMap)["ip_address"], hostAddress)
 		}
 	}
 
