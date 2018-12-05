@@ -9,8 +9,3 @@ input "plugin_enabled" {
   type = "string"
   default = "true"
 }
-
-input "for_each" {
-  type = "list"
-  default = []
-}
