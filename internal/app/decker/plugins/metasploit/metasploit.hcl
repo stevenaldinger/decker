@@ -8,11 +8,6 @@ input "options" {
   default = {}
 }
 
-input "for_each" {
-  type = "list"
-  default = []
-}
-
 input "plugin_enabled" {
   type = "string"
   default = "true"

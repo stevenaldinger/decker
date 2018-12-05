@@ -40,9 +40,9 @@ func main() {
 
 		pluginAttrs := hcl.GetPluginAttributes(block)
 
-		hclConfig, pluginContent := hcl.GetPluginContent(block, pluginHCLPath)
-
 		containsForEach := contains(pluginAttrs, "for_each")
+
+		hclConfig, pluginContent := hcl.GetPluginContent(containsForEach, block, pluginHCLPath)
 
 		if containsForEach {
 			// returns JSON, not sure why

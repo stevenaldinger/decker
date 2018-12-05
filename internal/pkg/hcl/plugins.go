@@ -35,10 +35,16 @@ func parsePluginHCL(hclFilePath string) *PluginConfig {
 }
 
 // parsePluginHCLFromFile builds Input and Output body schemas from parsed plugin HCL
-func parsePluginHCLFromFile(hclFilePath string) (*PluginConfig, *hcl.BodySchema) {
+func parsePluginHCLFromFile(forEach bool, hclFilePath string) (*PluginConfig, *hcl.BodySchema) {
 	hclConfig := parsePluginHCL(hclFilePath)
 
 	pluginInputAttributes := []hcl.AttributeSchema{}
+
+	// this keeps plugins from having to specify a for_each input in their hcl
+	// and allows it to be optional
+	if forEach {
+		pluginInputAttributes = append(pluginInputAttributes, hcl.AttributeSchema{Name: "for_each"})
+	}
 
 	for _, element := range hclConfig.Inputs {
 		pluginInputAttributes = append(pluginInputAttributes, hcl.AttributeSchema{Name: element.Name})
@@ -95,9 +101,9 @@ func GetPluginAttributes(block *hcl.Block) []string {
 
 // GetPluginContent takes a *hcl.Block and a path to an HCL config file and
 // returns the BodyContent
-func GetPluginContent(block *hcl.Block, hclFilePath string) (*PluginConfig, *hcl.BodyContent) {
+func GetPluginContent(forEach bool, block *hcl.Block, hclFilePath string) (*PluginConfig, *hcl.BodyContent) {
 	// hclConfig, pluginInputSchema
-	hclConfig, pluginInputSchema := parsePluginHCLFromFile(hclFilePath)
+	hclConfig, pluginInputSchema := parsePluginHCLFromFile(forEach, hclFilePath)
 
 	pluginContent, pluginDiags := block.Body.Content(pluginInputSchema)
 
@@ -132,13 +138,15 @@ func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, eval
 		inputType := hclInputs[key].Type
 		// inputDefault := hclInputs[key].Default
 
-		if inputType == "list" {
-			inputsMap[key] = DecodeHCLListAttribute(attribute, evalVals)
-		} else if inputType == "map" {
-			inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals)
-		} else {
-			// strings and booleans
-			inputsMap[key] = DecodeHCLAttribute(attribute, evalVals)
+		if key != "for_each" {
+			if inputType == "list" {
+				inputsMap[key] = DecodeHCLListAttribute(attribute, evalVals)
+			} else if inputType == "map" {
+				inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals)
+			} else {
+				// strings and booleans
+				inputsMap[key] = DecodeHCLAttribute(attribute, evalVals)
+			}
 		}
 	}
 

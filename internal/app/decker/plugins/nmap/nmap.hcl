@@ -5,11 +5,6 @@ input "host" {
   default = "example.com"
 }
 
-input "for_each" {
-  type = "list"
-  default = []
-}
-
 input "plugin_enabled" {
   type = "string"
   default = "true"

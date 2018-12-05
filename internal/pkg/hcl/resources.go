@@ -29,20 +29,6 @@ func GetExprVars(block *hcl.Block) map[string][]hcl.Traversal {
 
 	for attr := range content.Attributes {
 		exprVars[attr] = content.Attributes[attr].Expr.Variables()
-
-		// support for_each by deleting "each" line from the exprVars
-		// otherwise this will cause "panic: simple: adding self edge"
-		// in graph.go - addEdgesToGraph
-		for _, contentVars := range exprVars[attr] {
-			rootName := contentVars.RootName()
-
-			// this might delete a full expr causing a bug if the line is something
-			// like: "${each.key} ${some_module.key}" where "some_module.key" also
-			// gets deleted?
-			if rootName == "each" {
-				delete(exprVars, attr)
-			}
-		}
 	}
 
 	return exprVars
