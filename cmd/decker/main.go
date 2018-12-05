@@ -32,6 +32,7 @@ func main() {
 
 	// map to keep track of all the values returned from plugins
 	evalCtxVals := map[string]*map[string]cty.Value{}
+	evalCtxValsNested := map[string]*map[string]*map[string]cty.Value{}
 
 	for index, block := range resBlocksSorted {
 		resourcePlugin, resourceName := block.Labels[0], block.Labels[1]
@@ -46,7 +47,7 @@ func main() {
 
 		if containsForEach {
 			// returns JSON, not sure why
-			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], &evalCtxVals)
+			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], &evalCtxVals, &evalCtxValsNested)
 
 			var forEachList []string
 
@@ -66,7 +67,7 @@ func main() {
 
 				evalCtxVals["each"] = hcl.BuildEvalContextFromMap(&forEachMap, &forEachListMap)
 
-				inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals)
+				inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals, &evalCtxValsNested)
 
 				// declare a new empty map to be passed into the plugin
 				var resultsMap = map[string]string{}
@@ -80,13 +81,20 @@ func main() {
 					fmt.Println(fmt.Sprintf("DECKER: [Disabled] Did not run plugin %d of %d: %s (%s)", index+1, len(resBlocksSorted), resourcePlugin, resourceName))
 				}
 
+				// initialize if map doesn't exist yet
+				if _, ok := evalCtxValsNested[resourceName]; !ok {
+					var initMap = &map[string]*map[string]cty.Value{}
+					// var initMap = &map[string]cty.Value {}
+					evalCtxValsNested[resourceName] = initMap
+				}
+
 				// build eval context from plugin results and add it to the ongoing map
-				evalCtxVals[resourceName] = hcl.BuildEvalContextFromMap(&resultsMap, &resultsListMap)
+				(*evalCtxValsNested[resourceName])[string(eachKey)] = hcl.BuildEvalContextFromMap(&resultsMap, &resultsListMap)
 
 				reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]"), resultsMap["raw_output"])
 			}
 		} else {
-			inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals)
+			inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals, &evalCtxValsNested)
 
 			// declare a new empty map to be passed into the plugin
 			var resultsMap = map[string]string{}

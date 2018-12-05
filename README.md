@@ -37,8 +37,8 @@ variable "target_host" {
   type = "string"
 }
 resource "nslookup" "nslookup" {
-  host = "${var.target_host}"
   dns_server = "8.8.4.4"
+  host = "${var.target_host}"
 }
 resource "metasploit" "metasploit" {
   for_each = "${nslookup.ip_address}"
@@ -48,6 +48,33 @@ resource "metasploit" "metasploit" {
     INTERFACE = "eth0"
   }
 }
+```
+
+Complex configuration combining `for_each` with nested values:
+
+```hcl
+variable "target_host" {
+  type = "string"
+}
+resource "nslookup" "nslookup" {
+  dns_server = "8.8.4.4"
+  host = "${var.target_host}"
+}
+resource "nmap" "nmap" {
+  for_each = "${nslookup.ip_address}"
+  host = "${each.key}"
+}
+// for each IP, check if nmap found port 25 open.
+// if yes, run metasploit's smtp_enum scanner
+resource "metasploit" "metasploit" {
+  for_each = "${nslookup.ip_address}"
+  exploit = "auxiliary/scanner/smtp/smtp_enum"
+  options = {
+    RHOSTS = "${each.key}"
+  }
+  plugin_enabled = "${nmap["${each.key}"].25 == "open"}"
+}
+
 ```
 
 ## Why the name decker?

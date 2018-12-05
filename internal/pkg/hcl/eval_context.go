@@ -52,7 +52,7 @@ func BuildEvalContextFromMap(m *map[string]string, lm *map[string][]string) *map
 // available using "var" prefix in config files, and also loops over all the
 // aggregated results maps from plugins that have run and makes them available
 // for the next round of HCL decoding.
-func BuildEvalContext(runningVals *map[string]*map[string]cty.Value) *hcl.EvalContext {
+func BuildEvalContext(runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *hcl.EvalContext {
 	// func BuildEvalContext() (*hcl.EvalContext) {
 	var Variables = map[string]cty.Value{}
 
@@ -62,6 +62,22 @@ func BuildEvalContext(runningVals *map[string]*map[string]cty.Value) *hcl.EvalCo
 
 	for key, element := range *runningVals {
 		Variables[key] = cty.ObjectVal(*element)
+	}
+
+	for key, nestedVal := range *runningValsNested {
+		for nestedKey, element := range *nestedVal {
+			if _, ok := Variables[key]; ok {
+				// key already exists in map, need to merge them
+				Variables[key] = cty.ObjectVal(map[string]cty.Value{
+					key:       Variables[key],
+					nestedKey: cty.ObjectVal(*element),
+				})
+			} else {
+				Variables[key] = cty.ObjectVal(map[string]cty.Value{
+					nestedKey: cty.ObjectVal(*element),
+				})
+			}
+		}
 	}
 
 	ctx := &hcl.EvalContext{

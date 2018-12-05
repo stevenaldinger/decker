@@ -16,11 +16,11 @@ import (
 // iterative run and attempts to decode a Resource block with the latest
 // context (this is the magic allowing outputs from one plugin to work
 // as inputs to another)
-func DecodeHCLResourceBlock(block *hcl.Block, runningVals *map[string]*map[string]cty.Value) *ResourceConfig {
+func DecodeHCLResourceBlock(block *hcl.Block, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *ResourceConfig {
 	var c ResourceConfig
 
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(runningVals)
+	ctx := BuildEvalContext(runningVals, runningValsNested)
 
 	diags := gohcl.DecodeBody(block.Body, ctx, &c)
 
@@ -34,9 +34,9 @@ func DecodeHCLResourceBlock(block *hcl.Block, runningVals *map[string]*map[strin
 // DecodeHCLAttribute calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value, defVal string) string {
+func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value, defVal string) string {
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(runningVals)
+	ctx := BuildEvalContext(runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
@@ -64,9 +64,9 @@ func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[s
 // DecodeHCLListAttribute calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLListAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value) string {
+func DecodeHCLListAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) string {
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(runningVals)
+	ctx := BuildEvalContext(runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
@@ -98,9 +98,9 @@ func DecodeHCLListAttribute(attribute *hcl.Attribute, runningVals *map[string]*m
 // DecodeHCLMapAttribute calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLMapAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value) string {
+func DecodeHCLMapAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) string {
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(runningVals)
+	ctx := BuildEvalContext(runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
