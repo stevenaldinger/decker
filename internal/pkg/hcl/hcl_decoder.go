@@ -3,6 +3,7 @@ package hcl
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/hashicorp/hcl2/gohcl"
@@ -33,7 +34,7 @@ func DecodeHCLResourceBlock(block *hcl.Block, runningVals *map[string]*map[strin
 // DecodeHCLAttribute calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value) string {
+func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[string]cty.Value, defVal string) string {
 	// will return evalcontext with environment variables
 	ctx := BuildEvalContext(runningVals)
 
@@ -46,7 +47,12 @@ func DecodeHCLAttribute(attribute *hcl.Attribute, runningVals *map[string]*map[s
 	if err != nil {
 		boolErr := gocty.FromCtyValue(ctyVal, &decodedBool)
 		if boolErr != nil {
-			fmt.Println("Decoding error for string and bool:", boolErr)
+			if defVal != "" {
+				decodedVal = defVal
+			} else {
+				fmt.Println("Decoding error for string and bool and default value was an empty string:", boolErr)
+				os.Exit(1)
+			}
 		} else {
 			decodedVal = strconv.FormatBool(decodedBool)
 		}
