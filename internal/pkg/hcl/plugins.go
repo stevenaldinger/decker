@@ -136,7 +136,7 @@ func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, eval
 	// pass in default in case parsing fails
 	for key, attribute := range attributes {
 		inputType := hclInputs[key].Type
-		// inputDefault := hclInputs[key].Default
+		inputDefault := hclInputs[key].Default
 
 		if key != "for_each" {
 			if inputType == "list" {
@@ -145,7 +145,7 @@ func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, eval
 				inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals)
 			} else {
 				// strings and booleans
-				inputsMap[key] = DecodeHCLAttribute(attribute, evalVals)
+				inputsMap[key] = DecodeHCLAttribute(attribute, evalVals, inputDefault)
 			}
 		}
 	}
