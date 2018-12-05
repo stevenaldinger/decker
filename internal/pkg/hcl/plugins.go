@@ -117,7 +117,7 @@ func GetPluginContent(forEach bool, block *hcl.Block, hclFilePath string) (*Plug
 
 // CreateInputsMap decodes the HCL attributes with an evaluation context
 // consisting of the outputs of all previously run plugins
-func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, evalVals *map[string]*map[string]cty.Value) map[string]string {
+func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, evalVals *map[string]*map[string]cty.Value, evalValsNested *map[string]*map[string]*map[string]cty.Value) map[string]string {
 	// declare inputsMap with default "plugin_enabled" = true
 	// the rest is pulled from the specific plugin's HCL file "input" blocks
 	// ex: "internal/app/decker/plugins/nslookup/nslookup.hcl"
@@ -140,12 +140,12 @@ func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, eval
 
 		if key != "for_each" {
 			if inputType == "list" {
-				inputsMap[key] = DecodeHCLListAttribute(attribute, evalVals)
+				inputsMap[key] = DecodeHCLListAttribute(attribute, evalVals, evalValsNested)
 			} else if inputType == "map" {
-				inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals)
+				inputsMap[key] = DecodeHCLMapAttribute(attribute, evalVals, evalValsNested)
 			} else {
 				// strings and booleans
-				inputsMap[key] = DecodeHCLAttribute(attribute, evalVals, inputDefault)
+				inputsMap[key] = DecodeHCLAttribute(attribute, evalVals, evalValsNested, inputDefault)
 			}
 		}
 	}

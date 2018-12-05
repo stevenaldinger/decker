@@ -32,6 +32,13 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 		(*resultsMap)[strconv.Itoa(int(port.ID))] = port.State
 	}
 
+	// set everything that's not open to false so value is defined in HCL configs
+	for i := 1; i <= 30000; i++ {
+		if _, ok := (*resultsMap)[strconv.Itoa(i)]; !ok {
+			(*resultsMap)[strconv.Itoa(i)] = "closed"
+		}
+	}
+
 	(*resultsMap)["host_address"] = host.Address
 
 	if len(host.Hostnames) > 0 {

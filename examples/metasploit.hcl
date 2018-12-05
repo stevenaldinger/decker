@@ -9,11 +9,19 @@ resource "nslookup" "nslookup" {
   dns_server = "8.8.4.4"
 }
 
+resource "nmap" "nmap" {
+  for_each = "${nslookup.ip_address}"
+  host = "${each.key}"
+  plugin_enabled = "true"
+}
+
+// for each IP, check if nmap found port 25 open.
+// if yes, run metasploit's smtp_enum scanner
 resource "metasploit" "metasploit" {
   for_each = "${nslookup.ip_address}"
-  exploit = "auxiliary/scanner/portscan/tcp"
+  exploit = "auxiliary/scanner/smtp/smtp_enum"
   options = {
-    RHOSTS = "${each.key}/32"
-    INTERFACE = "eth0"
+    RHOSTS = "${each.key}"
   }
+  plugin_enabled = "${nmap["${each.key}"].25 == "open"}"
 }
