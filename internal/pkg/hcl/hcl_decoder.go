@@ -105,6 +105,7 @@ func DecodeHCLMapAttribute(attribute *hcl.Attribute, runningVals *map[string]*ma
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
 	var decodedMapVal string
+	var decodedBool bool
 	var decodedMap = map[string]string{}
 
 	// if this errors out use default?
@@ -113,8 +114,13 @@ func DecodeHCLMapAttribute(attribute *hcl.Attribute, runningVals *map[string]*ma
 	for key, val := range ctyValMap {
 		err := gocty.FromCtyValue(val, &decodedMapVal)
 		if err != nil {
-			fmt.Println("Error trying to decode cty val in map.", err)
-			// exit the program here?
+			boolErr := gocty.FromCtyValue(val, &decodedBool)
+			if boolErr != nil {
+				fmt.Println("Error trying to decode cty val for string and bool in map:", boolErr)
+				// exit the program here?
+			} else {
+				decodedMap[key] = strconv.FormatBool(decodedBool)
+			}
 		} else {
 			decodedMap[key] = decodedMapVal
 		}
