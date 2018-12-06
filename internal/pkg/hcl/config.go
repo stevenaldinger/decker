@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/hcl2/hclparse"
 )
 
-// GetResourceBlocksFromConfig takes an HCL file path and return an go native Config,
+// GetBlocksFromConfig takes an HCL file path and return an go native Config,
 // ordered array of the plugin names that should be run, and an ordered array
 // of hcl.Block that need to be parsed
-func GetResourceBlocksFromConfig(hclFilePath string) []*hcl.Block {
+func GetBlocksFromConfig(hclFilePath string) []*hcl.Block {
 	parser := hclparse.NewParser()
 
 	f, diags := parser.ParseHCLFile(hclFilePath)

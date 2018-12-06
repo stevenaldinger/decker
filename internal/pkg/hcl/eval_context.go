@@ -1,6 +1,7 @@
 package hcl
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -8,19 +9,43 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// Gets all environment variables with prefix "DECKER_" and creates a map
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+// GetHCLEvalContextVarsFromEnv gets all environment variables with prefix "DECKER_" and creates a map
 // with keys equal to the environment variable name but with "DECKER_" prefix
 // stripped away, and the rest of the name is set to lower case. The values
 // of the environment variables remain untouched. This allows HCL configuration
 // blocks to use environment variables like "${var.my_environmment_variable}".
-func getHCLEvalContextVarsFromEnv() *map[string]cty.Value {
+func GetHCLEvalContextVarsFromEnv(varNames []string) *map[string]cty.Value {
 	var Var = map[string]cty.Value{}
 
 	// gets DECKER_* env vars for var.* values in HCL
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
 		if strings.HasPrefix(pair[0], "DECKER_") {
-			Var[strings.ToLower(strings.TrimPrefix(pair[0], "DECKER_"))] = cty.StringVal(pair[1])
+			strippedName := strings.ToLower(strings.TrimPrefix(pair[0], "DECKER_"))
+			containsVar := contains(varNames, strippedName)
+
+			if containsVar {
+				Var[strippedName] = cty.StringVal(pair[1])
+			}
+		}
+	}
+
+	// check that every variable name that should be defined is defined.
+	// this should probably just be combined with the for loop above instead
+	// of using os.Environ() and looping through all of them.
+	for _, e := range varNames {
+		if _, ok := Var[e]; !ok {
+			fmt.Println("Environment variable", "DECKER_"+strings.ToUpper(e), "not defined.")
+			os.Exit(1)
 		}
 	}
 
@@ -52,13 +77,10 @@ func BuildEvalContextFromMap(m *map[string]string, lm *map[string][]string) *map
 // available using "var" prefix in config files, and also loops over all the
 // aggregated results maps from plugins that have run and makes them available
 // for the next round of HCL decoding.
-func BuildEvalContext(runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *hcl.EvalContext {
-	// func BuildEvalContext() (*hcl.EvalContext) {
+func BuildEvalContext(envVarsCtx *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *hcl.EvalContext {
 	var Variables = map[string]cty.Value{}
 
-	evalContextVariables := getHCLEvalContextVarsFromEnv()
-
-	Variables["var"] = cty.ObjectVal(*evalContextVariables)
+	Variables["var"] = cty.ObjectVal(*envVarsCtx)
 
 	for key, element := range *runningVals {
 		Variables[key] = cty.ObjectVal(*element)

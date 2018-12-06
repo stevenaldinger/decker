@@ -27,8 +27,12 @@ func main() {
 	// get the path to a given config file passed in via CLI
 	hclConfigFile := paths.GetConfigFilePath()
 
-	resBlocks := hcl.GetResourceBlocksFromConfig(hclConfigFile)
-	resBlocksSorted := dependencies.Sort(resBlocks)
+	blocks := hcl.GetBlocksFromConfig(hclConfigFile)
+	varBlockNames := dependencies.GetVariableNames(blocks)
+	resBlocksSorted := dependencies.Sort(blocks)
+
+	// get environment variable values for each declared variable block
+	var envVarCtx = hcl.GetHCLEvalContextVarsFromEnv(varBlockNames)
 
 	// map to keep track of all the values returned from plugins
 	evalCtxVals := map[string]*map[string]cty.Value{}
@@ -47,7 +51,7 @@ func main() {
 
 		if containsForEach {
 			// returns JSON, not sure why
-			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], &evalCtxVals, &evalCtxValsNested)
+			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], envVarCtx, &evalCtxVals, &evalCtxValsNested)
 
 			var forEachList []string
 
@@ -67,7 +71,7 @@ func main() {
 
 				evalCtxVals["each"] = hcl.BuildEvalContextFromMap(&forEachMap, &forEachListMap)
 
-				inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals, &evalCtxValsNested)
+				inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &evalCtxVals, &evalCtxValsNested)
 
 				// declare a new empty map to be passed into the plugin
 				var resultsMap = map[string]string{}
@@ -94,7 +98,7 @@ func main() {
 				reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]"), resultsMap["raw_output"])
 			}
 		} else {
-			inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, &evalCtxVals, &evalCtxValsNested)
+			inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &evalCtxVals, &evalCtxValsNested)
 
 			// declare a new empty map to be passed into the plugin
 			var resultsMap = map[string]string{}
