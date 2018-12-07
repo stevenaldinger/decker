@@ -180,6 +180,23 @@ RUN echo "Backing up /etc/apt/sources.list..." \
  && rm /etc/apt/sources.list \
  && mv /etc/apt/sources.list.bak /etc/apt/sources.list
 
+# nodejs / npm are requirements for w3af
+RUN curl -sL https://deb.nodesource.com/setup_8.x --output /tmp/nodejs-deb \
+ && bash /tmp/nodejs-deb \
+ && apt-get install -y nodejs
+
+RUN apt-get update \
+ && apt-get install -y \
+      libxml2-dev \
+      libxslt1-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN git clone https://github.com/andresriancho/w3af.git /usr/bin/w3af \
+ && cd /usr/bin/w3af \
+ && ./w3af_console \
+ ; . /tmp/w3af_dependency_install.sh
+
 COPY . .
 
 CMD ["bash"]

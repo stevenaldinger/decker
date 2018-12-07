@@ -1,0 +1,37 @@
+---
+version: '3'
+services:
+  dvwa:
+    container_name: dvwa
+    hostname: dvwa
+    image: "infoslack/dvwa"
+    networks:
+    - pen-testing
+    ports:
+    - "8080:80"
+
+  decker:
+    container_name: decker
+    hostname: decker
+    image: "stevenaldinger/decker:kali"
+    build:
+      context: ../
+      dockerfile: build/package/Dockerfile
+    command:
+    - "tail"
+    - "-f"
+    - "/dev/null"
+    restart: "no"
+    environment:
+      # target damn vulnerable web app container
+      DECKER_TARGET_HOST: "dvwa"
+    networks:
+    - pen-testing
+    ports:
+    - "4444:4444"
+    volumes:
+    - ../decker-reports/:/tmp/reports/
+    - ../examples/:/decker-config/
+
+networks:
+  pen-testing: {}

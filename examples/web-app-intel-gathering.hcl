@@ -12,8 +12,14 @@ variable "target_host" {
 //   ex: nslookup_1.ip
 
 // general info gathering
-resource "nslookup" "nslookup_1" {
+resource "nslookup" "nslookup" {
   host = "${var.target_host}"
+  plugin_enabled = "true"
+  dns_server = "8.8.4.4"
+}
+resource "nmap" "nmap" {
+  for_each = "${nslookup.ip_address}"
+  host = "${each.key}"
   plugin_enabled = "true"
 }
 resource "dig" "dig" {
@@ -21,10 +27,6 @@ resource "dig" "dig" {
   plugin_enabled = "true"
 }
 resource "dnsrecon" "dnsrecon" {
-  host = "${var.target_host}"
-  plugin_enabled = "true"
-}
-resource "nmap" "nmap" {
   host = "${var.target_host}"
   plugin_enabled = "true"
 }
@@ -53,6 +55,18 @@ resource "a2sv" "a2sv" {
 
 // XSS vulnerability scans
 resource "xss" "xss" {
+  host = "${var.target_host}"
+  plugin_enabled = "true"
+}
+
+// Web server vulnerability scan
+resource "nikto" "nikto" {
+  host = "${var.target_host}"
+  plugin_enabled = "true"
+}
+
+// w3af "all usage" scan
+resource "w3af" "w3af" {
   host = "${var.target_host}"
   plugin_enabled = "true"
 }
