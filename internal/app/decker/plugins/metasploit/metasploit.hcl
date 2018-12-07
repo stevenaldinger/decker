@@ -8,6 +8,11 @@ input "options" {
   default = {}
 }
 
+input "db_enabled" {
+  type = "string"
+  default = "false"
+}
+
 input "plugin_enabled" {
   type = "string"
   default = "true"

@@ -69,7 +69,15 @@ docker_run:
 docker_run_prod:
 	@docker run -it --rm \
 		stevenaldinger/$(APP_NAME):latest
+
+docker_run_dvwa:
+	@docker-compose -f $(BASE_DIR)/deployments/docker-compose-dvwa.yml up -d
 # ============================= [END] Run Scripts ============================ #
+
+# =========================== [START] Stop Scripts =========================== #
+docker_stop_dvwa:
+	@docker-compose -f $(BASE_DIR)/deployments/docker-compose-dvwa.yml down
+# ============================ [END] Stop Scripts ============================ #
 
 # ========================= [START] Formatting Script ======================== #
 gofmt:

@@ -14,6 +14,7 @@ type plugin string
 //   "exploit": "example.com",
 //   "options": "{ ... }".
 //   "plugin_enabled": "true",
+//   "db_enabled": "false",
 // }
 func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
 	var (
@@ -30,6 +31,36 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 	}
 
 	exploit := (*inputsMap)["exploit"]
+	// dbEnabled := (*inputsMap)["db_enabled"]
+
+	cmdName := "msfconsole"
+
+	// if dbEnabled == "true" {
+	// 	dbStatusCmd := []string{"-x", "db_status"}
+	//
+	// 	if cmdOut, err = exec.Command(cmdName, dbStatusCmd...).Output(); err != nil {
+	// 		fmt.Fprintln(os.Stderr, "There was an error fetching database status:", err)
+	// 		return
+	// 	}
+	//
+	// 	// search for this string in results
+	// 	// "postgresql selected, no connection"
+	// 	if notInitialized {
+	// 		initCmd := "msfdb"
+	// 		initArgs := []string{"init"}
+	// 		if dbCmdOut, dbErr = exec.Command(initCmd, initArgs...).Output; dbErr != nil {
+	// 			fmt.Fprintln(os.Stderr, "There was an error initializing metasploit database:", dbErr)
+	// 			return
+	// 		}
+	//
+	// 		if cmdOut, err = exec.Command(cmdName, dbStatusCmd...).Output(); err != nil {
+	// 			fmt.Fprintln(os.Stderr, "There was an error fetching database status:", err)
+	// 			return
+	// 		}
+	// 		// search for this string in results
+	// 		// "postgresql selected, no connection"
+	// 	}
+	// }
 
 	cmdStr := "use " + exploit + ";"
 
@@ -37,13 +68,12 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 		if str, ok := val.(string); ok {
 			cmdStr = cmdStr + "set " + key + " " + str + ";"
 		} else {
-			fmt.Println("Option value is not a string for "+key+":", val)
+			fmt.Println("Option value is not a string for " + key + ":", val)
 		}
 	}
 
 	cmdStr = cmdStr + "run"
 
-	cmdName := "msfconsole"
 	cmdArgs := []string{"-x", cmdStr}
 
 	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
