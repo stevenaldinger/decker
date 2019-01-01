@@ -68,7 +68,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 		if str, ok := val.(string); ok {
 			cmdStr = cmdStr + "set " + key + " " + str + ";"
 		} else {
-			fmt.Println("Option value is not a string for " + key + ":", val)
+			fmt.Println("Option value is not a string for "+key+":", val)
 		}
 	}
 

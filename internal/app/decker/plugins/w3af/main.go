@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"text/template"
-	"bytes"
 )
 
 type plugin string
@@ -34,7 +34,7 @@ func writeStringToFile(filePath, str string) {
 
 type ScriptVariables struct {
 	TargetHost string
-	Verbose string
+	Verbose    string
 }
 
 const w3afScript = `
@@ -107,7 +107,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 	var tpl bytes.Buffer
 	if tErr := t.Execute(&tpl, scriptVariables); tErr != nil {
 		fmt.Fprintln(os.Stderr, "Error executing w3af script template:", tErr)
-    return
+		return
 	}
 
 	result := tpl.String()
