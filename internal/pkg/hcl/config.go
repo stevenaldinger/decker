@@ -2,6 +2,7 @@ package hcl
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hcl2/hclparse"
@@ -11,9 +12,17 @@ import (
 // ordered array of the plugin names that should be run, and an ordered array
 // of hcl.Block that need to be parsed
 func GetBlocksFromConfig(hclFilePath string) []*hcl.Block {
+	jsonHCL := []byte(os.Getenv("DECKER_RUN_CONFIGURATION"))
 	parser := hclparse.NewParser()
 
-	f, diags := parser.ParseHCLFile(hclFilePath)
+	var f *hcl.File
+	var diags hcl.Diagnostics
+
+	if len(jsonHCL) == 0 {
+		f, diags = parser.ParseHCLFile(hclFilePath)
+	} else {
+		f, diags = parser.ParseJSON(jsonHCL, "cache-file.cache")
+	}
 
 	if diags.HasErrors() {
 		// should possibly exit the program here
