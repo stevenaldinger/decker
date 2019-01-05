@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,7 +36,7 @@ type plugin string
 //  "ip_address": "172.217.11.142",
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]cty.Value) {
 	var (
 		cmdOut          []byte
 		err             error
@@ -42,8 +44,11 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 		outputByLine    []string
 	)
 
-	targetHost := (*inputsMap)["host"]
-	dnsServer := (*inputsMap)["dns_server"]
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
+
+	targetHost := decoder.GetString((*inputsMap)["host"])
+	dnsServer := decoder.GetString((*inputsMap)["dns_server"])
 
 	cmdName := "nslookup"
 	cmdArgs := []string{targetHost, dnsServer}
@@ -73,31 +78,38 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 	for _, line := range outputByLineDNS {
 		if strings.Contains(line, "Server:") {
 			serverIP := strings.TrimSpace(strings.Split(line, ":")[1])
-			(*resultsMap)["dns_server"] = serverIP
+			(*resultsMap)["dns_server"] = encoder.StringVal(serverIP)
 		}
 
 		if strings.Contains(line, "Address:") {
 			serverAddress := strings.TrimSpace(strings.Split(line, ":")[1])
-			(*resultsMap)["dns_address"] = serverAddress
+			(*resultsMap)["dns_address"] = encoder.StringVal(serverAddress)
 		}
 	}
 
 	var ipAddList = []string{}
-	(*resultsListMap)["ip_address"] = ipAddList
+	// (*resultsListMap)["ip_address"] = ipAddList
 	// parse out host info
 	for _, line := range outputByLine {
 		if strings.Contains(line, "Name:") {
 			hostName := strings.TrimSpace(strings.Split(line, ":")[1])
-			(*resultsMap)["host_name"] = hostName
+			(*resultsMap)["host_name"] = encoder.StringVal(hostName)
 		}
 
 		if strings.Contains(line, "Address:") {
 			hostAddress := strings.TrimSpace(strings.Split(line, ":")[1])
-			(*resultsListMap)["ip_address"] = append((*resultsListMap)["ip_address"], hostAddress)
+			ipAddList = append(ipAddList, hostAddress)
+			// (*resultsListMap)["ip_address"] = append((*resultsListMap)["ip_address"], hostAddress)
 		}
 	}
 
-	(*resultsMap)["raw_output"] = output
+	var ipAddListCty = []cty.Value{}
+	for _, ipAdd := range ipAddList {
+		ipAddListCty = append(ipAddListCty, encoder.StringVal(ipAdd))
+	}
+
+	(*resultsMap)["ip_address"] = encoder.ListVal(ipAddListCty)
+	(*resultsMap)["raw_output"] = encoder.StringVal(output)
 }
 
 // Plugin is an implementation of github.com/stevenaldinger/decker/pkg/plugins.Plugin

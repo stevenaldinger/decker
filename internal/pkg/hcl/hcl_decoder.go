@@ -3,8 +3,6 @@ package hcl
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"strconv"
 
 	"github.com/hashicorp/hcl2/gohcl"
 	"github.com/hashicorp/hcl2/hcl"
@@ -31,44 +29,28 @@ func DecodeHCLResourceBlock(block *hcl.Block, envVals *map[string]cty.Value, run
 	return &c
 }
 
-// DecodeHCLAttribute calls BuildEvalContext() with the plugin results aggregated from each
+// DecodeHCLAttributeCty calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value, defVal string) string {
+func DecodeHCLAttributeCty(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value, defVal string) cty.Value {
 	// will return evalcontext with environment variables
 	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
-	var decodedVal string
-	var decodedBool bool
-	err := gocty.FromCtyValue(ctyVal, &decodedVal)
-
-	if err != nil {
-		boolErr := gocty.FromCtyValue(ctyVal, &decodedBool)
-		if boolErr != nil {
-			if defVal != "" {
-				decodedVal = defVal
-			} else {
-				fmt.Println("Decoding error for string and bool and default value was an empty string:", boolErr)
-				os.Exit(1)
-			}
-		} else {
-			decodedVal = strconv.FormatBool(decodedBool)
-		}
-	}
-
-	return decodedVal
+	return ctyVal
 }
 
 // DecodeHCLListAttribute calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
-// using the context
+// using the context. This is used in the "for_each" logic, not sure if its still needed.
 func DecodeHCLListAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) string {
 	// will return evalcontext with environment variables
 	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
+
+	fmt.Println("Cty val:", ctyVal)
 
 	var decodedArrVal string
 	var decodedArray = []string{}
@@ -87,49 +69,6 @@ func DecodeHCLListAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Va
 	jsonBytes, jsonErr := json.Marshal(decodedArray)
 	if jsonErr != nil {
 		fmt.Println("json.Marshal(decodedArray) err:", jsonErr)
-		// exit the program here?
-		return ""
-	}
-
-	jsonString := string(jsonBytes)
-	return jsonString
-}
-
-// DecodeHCLMapAttribute calls BuildEvalContext() with the plugin results aggregated from each
-// iterative run and attempts to decode a Block's Attribute's Expression
-// using the context
-func DecodeHCLMapAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) string {
-	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
-
-	ctyVal, _ := attribute.Expr.Value(ctx)
-
-	var decodedMapVal string
-	var decodedBool bool
-	var decodedMap = map[string]string{}
-
-	// if this errors out use default?
-	ctyValMap := ctyVal.AsValueMap()
-
-	for key, val := range ctyValMap {
-		err := gocty.FromCtyValue(val, &decodedMapVal)
-		if err != nil {
-			boolErr := gocty.FromCtyValue(val, &decodedBool)
-			if boolErr != nil {
-				fmt.Println("Error trying to decode cty val for string and bool in map:", boolErr)
-				// exit the program here?
-			} else {
-				decodedMap[key] = strconv.FormatBool(decodedBool)
-			}
-		} else {
-			decodedMap[key] = decodedMapVal
-		}
-	}
-
-	jsonBytes, jsonErr := json.Marshal(decodedMap)
-
-	if jsonErr != nil {
-		fmt.Println("json.Marshal(decodedMap) err:", jsonErr)
 		// exit the program here?
 		return ""
 	}
