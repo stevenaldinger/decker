@@ -50,8 +50,6 @@ func DecodeHCLListAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Va
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
-	fmt.Println("Cty val:", ctyVal)
-
 	var decodedArrVal string
 	var decodedArray = []string{}
 
