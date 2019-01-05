@@ -8,6 +8,7 @@ import (
 	"gonum.org/v1/gonum/graph/topo"
 
 	"github.com/stevenaldinger/decker/internal/pkg/hcl"
+	"github.com/stevenaldinger/decker/internal/pkg/paths"
 )
 
 func addNodesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, resourceIDs *map[string]int64, resourceNodes *map[int64]ResourceNode) {
@@ -31,12 +32,23 @@ func addNodesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, re
 	}
 }
 
+// loop over list of strings and return true if list contains a given string
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func addEdgesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, resourceIDs *map[string]int64, resourceNodes *map[int64]ResourceNode) {
 	for _, block := range blocks {
 		switch block.Type {
 		case "resource":
 			// block.Labels[0] == plugin
 			// block.Labels[1] == unique name
+			nodePluginName := block.Labels[0]
 			nodeUniqueName := block.Labels[1]
 			nodeUniqueID := (*resourceIDs)[nodeUniqueName]
 			resourceNode := (*resourceNodes)[nodeUniqueID]
@@ -56,6 +68,22 @@ func addEdgesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, re
 							to:   resourceNode,
 						})
 					}
+				}
+			}
+
+			// handle for_each attributes
+			pluginHCLPath := paths.GetPluginHCLFilePath(nodePluginName)
+			pluginAttrs := hcl.GetPluginAttributes(block)
+			containsForEach := contains(pluginAttrs, "for_each")
+
+			if containsForEach {
+				_, pluginContent := hcl.GetPluginContent(containsForEach, block, pluginHCLPath)
+				dependentOn := pluginContent.Attributes["for_each"].Expr.Variables()[0].RootName()
+				if dependentOn != "var" {
+					dag.SetEdge(ResourceEdge{
+						from: (*resourceNodes)[(*resourceIDs)[dependentOn]],
+						to:   resourceNode,
+					})
 				}
 			}
 

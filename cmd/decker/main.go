@@ -54,7 +54,6 @@ func main() {
 		hclConfig, pluginContent := hcl.GetPluginContent(containsForEach, block, pluginHCLPath)
 
 		if containsForEach {
-			fmt.Println("For each running for", resourcePlugin, resourceName)
 			// returns JSON, not sure why
 			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], envVarCtx, &resultsMapCty, &resultsMapCtyNested)
 
