@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
 	"strconv"
@@ -20,13 +22,16 @@ type plugin string
 //  "raw_output": "...",
 // 	"waf_detected": "true",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]cty.Value) {
 	var (
 		cmdOut []byte
 		err    error
 	)
 
-	targetHost := (*inputsMap)["host"]
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
+
+	targetHost := decoder.GetString((*inputsMap)["host"])
 
 	cmdName := "wafw00f"
 	cmdArgs := []string{targetHost}
@@ -38,8 +43,8 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 
 	output := string(cmdOut)
 
-	(*resultsMap)["raw_output"] = output
-	(*resultsMap)["waf_detected"] = strconv.FormatBool(!strings.Contains(output, "No WAF detected by the generic detection"))
+	(*resultsMap)["raw_output"] = encoder.StringVal(output)
+	(*resultsMap)["waf_detected"] = encoder.StringVal(strconv.FormatBool(!strings.Contains(output, "No WAF detected by the generic detection")))
 }
 
 // Plugin is an implementation of github.com/stevenaldinger/decker/pkg/plugins.Plugin

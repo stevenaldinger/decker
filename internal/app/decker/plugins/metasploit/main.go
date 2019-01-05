@@ -1,8 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
 )
@@ -16,21 +18,18 @@ type plugin string
 //   "plugin_enabled": "true",
 //   "db_enabled": "false",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]cty.Value) {
 	var (
 		cmdOut []byte
 		err    error
 	)
-	var result map[string]interface{}
 
-	// https://www.sohamkamani.com/blog/2017/10/18/parsing-json-in-golang/
-	jsonUnmarshalErr := json.Unmarshal([]byte((*inputsMap)["options"]), &result)
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
 
-	if jsonUnmarshalErr != nil {
-		fmt.Println("Error unmarshaling json", jsonUnmarshalErr)
-	}
+	options := decoder.GetMap((*inputsMap)["options"])
 
-	exploit := (*inputsMap)["exploit"]
+	exploit := decoder.GetString((*inputsMap)["exploit"])
 	// dbEnabled := (*inputsMap)["db_enabled"]
 
 	cmdName := "msfconsole"
@@ -64,12 +63,8 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 
 	cmdStr := "use " + exploit + ";"
 
-	for key, val := range result {
-		if str, ok := val.(string); ok {
-			cmdStr = cmdStr + "set " + key + " " + str + ";"
-		} else {
-			fmt.Println("Option value is not a string for "+key+":", val)
-		}
+	for key, val := range *options {
+		cmdStr = cmdStr + "set " + key + " " + val + ";"
 	}
 
 	cmdStr = cmdStr + "run"
@@ -83,7 +78,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 
 	output := string(cmdOut)
 
-	(*resultsMap)["raw_output"] = output
+	(*resultsMap)["raw_output"] = encoder.StringVal(output)
 }
 
 // Plugin is an implementation of github.com/stevenaldinger/decker/pkg/plugins.Plugin

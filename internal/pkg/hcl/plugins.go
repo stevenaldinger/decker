@@ -115,14 +115,15 @@ func GetPluginContent(forEach bool, block *hcl.Block, hclFilePath string) (*Plug
 	return hclConfig, pluginContent
 }
 
-// CreateInputsMap decodes the HCL attributes with an evaluation context
+// CreateInputsMapCty decodes the HCL attributes with an evaluation context
 // consisting of the outputs of all previously run plugins
-func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, envVals *map[string]cty.Value, evalVals *map[string]*map[string]cty.Value, evalValsNested *map[string]*map[string]*map[string]cty.Value) map[string]string {
+func CreateInputsMapCty(inputs []PluginInputConfig, attributes hcl.Attributes, envVals *map[string]cty.Value, evalVals *map[string]*map[string]cty.Value, evalValsNested *map[string]*map[string]*map[string]cty.Value) map[string]cty.Value {
 	// declare inputsMap with default "plugin_enabled" = true
 	// the rest is pulled from the specific plugin's HCL file "input" blocks
 	// ex: "internal/app/decker/plugins/nslookup/nslookup.hcl"
-	var inputsMap = map[string]string{
-		"plugin_enabled": "true",
+	var inputsMap = map[string]cty.Value{
+		// changing this to bool causes panic right now, not sure why
+		"plugin_enabled": cty.StringVal("true"),
 	}
 
 	var hclInputs = map[string]PluginInputConfig{}
@@ -140,12 +141,12 @@ func CreateInputsMap(inputs []PluginInputConfig, attributes hcl.Attributes, envV
 
 		if key != "for_each" {
 			if inputType == "list" {
-				inputsMap[key] = DecodeHCLListAttribute(attribute, envVals, evalVals, evalValsNested)
+				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
 			} else if inputType == "map" {
-				inputsMap[key] = DecodeHCLMapAttribute(attribute, envVals, evalVals, evalValsNested)
+				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
 			} else {
 				// strings and booleans
-				inputsMap[key] = DecodeHCLAttribute(attribute, envVals, evalVals, evalValsNested, inputDefault)
+				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
 			}
 		}
 	}

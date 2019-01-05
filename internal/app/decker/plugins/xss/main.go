@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
 )
@@ -17,13 +19,16 @@ type plugin string
 // resultsMap{
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]cty.Value) {
 	var (
 		cmdOut []byte
 		err    error
 	)
 
-	targetHost := (*inputsMap)["host"]
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
+
+	targetHost := decoder.GetString((*inputsMap)["host"])
 
 	cmdName := "python"
 	cmdArgs := []string{"/usr/bin/XssPy/XssPy.py", "-v", "-u", targetHost}
@@ -35,7 +40,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 
 	output := string(cmdOut)
 
-	(*resultsMap)["raw_output"] = output
+	(*resultsMap)["raw_output"] = encoder.StringVal(output)
 	fmt.Println("If vulnerable, try these payloads later: https://pastebin.com/J1hCfL9J")
 }
 

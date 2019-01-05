@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
 )
@@ -17,15 +19,20 @@ type plugin string
 // resultsMap{
 //  "raw_output": "...",
 // }
-func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *map[string][]string) {
+func (p plugin) Run(inputsMap, resultsMap *map[string]cty.Value) {
 	var (
 		cmdOut []byte
 		err    error
 	)
 
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
+
+	command := decoder.GetString((*inputsMap)["command"])
+
 	cmdName := "sh"
 	cmdArgs := []string{"-c"}
-	cmdArgs = append(cmdArgs, (*inputsMap)["command"])
+	cmdArgs = append(cmdArgs, command)
 
 	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
 		fmt.Fprintln(os.Stderr, "There was an error running shell command: ", err)
@@ -34,7 +41,7 @@ func (p plugin) Run(inputsMap, resultsMap *map[string]string, resultsListMap *ma
 
 	output := string(cmdOut)
 
-	(*resultsMap)["raw_output"] = output
+	(*resultsMap)["raw_output"] = encoder.StringVal(output)
 }
 
 // Plugin is an implementation of github.com/stevenaldinger/decker/pkg/plugins.Plugin

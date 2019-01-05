@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/stevenaldinger/decker/internal/pkg/dependencies"
+	"github.com/stevenaldinger/decker/internal/pkg/gocty"
 	"github.com/stevenaldinger/decker/internal/pkg/hcl"
 	"github.com/stevenaldinger/decker/internal/pkg/paths"
 	"github.com/stevenaldinger/decker/internal/pkg/plugins"
@@ -35,8 +36,11 @@ func main() {
 	var envVarCtx = hcl.GetHCLEvalContextVarsFromEnv(varBlockNames)
 
 	// map to keep track of all the values returned from plugins
-	evalCtxVals := map[string]*map[string]cty.Value{}
-	evalCtxValsNested := map[string]*map[string]*map[string]cty.Value{}
+	resultsMapCty := map[string]*map[string]cty.Value{}
+	resultsMapCtyNested := map[string]*map[string]*map[string]cty.Value{}
+
+	decoder := gocty.Decoder{}
+	encoder := gocty.Encoder{}
 
 	for index, block := range resBlocksSorted {
 		resourcePlugin, resourceName := block.Labels[0], block.Labels[1]
@@ -50,8 +54,9 @@ func main() {
 		hclConfig, pluginContent := hcl.GetPluginContent(containsForEach, block, pluginHCLPath)
 
 		if containsForEach {
+			fmt.Println("For each running for", resourcePlugin, resourceName)
 			// returns JSON, not sure why
-			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], envVarCtx, &evalCtxVals, &evalCtxValsNested)
+			forEachDecoded := hcl.DecodeHCLListAttribute(pluginContent.Attributes["for_each"], envVarCtx, &resultsMapCty, &resultsMapCtyNested)
 
 			var forEachList []string
 
@@ -63,19 +68,17 @@ func main() {
 			}
 
 			for _, eachKey := range forEachList {
-				var forEachMap = map[string]string{
-					"key": string(eachKey),
+				var forEachMap = &map[string]cty.Value{
+					"key": encoder.StringVal(string(eachKey)),
 				}
-				// not used for anything right now, just need it for the function call
-				var forEachListMap = map[string][]string{}
 
-				evalCtxVals["each"] = hcl.BuildEvalContextFromMap(&forEachMap, &forEachListMap)
+				resultsMapCty["each"] = forEachMap
 
-				inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &evalCtxVals, &evalCtxValsNested)
+				inputsMap := hcl.CreateInputsMapCty(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &resultsMapCty, &resultsMapCtyNested)
 
 				// declare a new empty map to be passed into the plugin
-				var resultsMap = map[string]string{}
-				var resultsListMap = map[string][]string{}
+				var resultsMap = map[string]cty.Value{}
+				var resultsListMap = map[string][]cty.Value{}
 
 				pluginEnabled := plugins.RunIfEnabled(resourcePlugin, &inputsMap, &resultsMap, &resultsListMap)
 
@@ -83,39 +86,48 @@ func main() {
 					fmt.Println(fmt.Sprintf("DECKER: Ran plugin %d[%s] of %d: %s (%s)", index+1, string(eachKey), len(resBlocksSorted), resourcePlugin, resourceName))
 				} else {
 					fmt.Println(fmt.Sprintf("DECKER: [Disabled] Did not run plugin %d of %d: %s (%s)", index+1, len(resBlocksSorted), resourcePlugin, resourceName))
+
+					resultsMap["raw_output"] = encoder.StringVal("")
 				}
 
 				// initialize if map doesn't exist yet
-				if _, ok := evalCtxValsNested[resourceName]; !ok {
+				if _, ok := resultsMapCtyNested[resourceName]; !ok {
 					var initMap = &map[string]*map[string]cty.Value{}
 					// var initMap = &map[string]cty.Value {}
-					evalCtxValsNested[resourceName] = initMap
+					resultsMapCtyNested[resourceName] = initMap
 				}
 
 				// build eval context from plugin results and add it to the ongoing map
-				(*evalCtxValsNested[resourceName])[string(eachKey)] = hcl.BuildEvalContextFromMap(&resultsMap, &resultsListMap)
+				(*resultsMapCtyNested[resourceName])[string(eachKey)] = &resultsMap
 
-				reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]"), resultsMap["raw_output"])
+				if pluginEnabled {
+					reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]"), decoder.GetString(resultsMap["raw_output"]))
+				}
 			}
 		} else {
-			inputsMap := hcl.CreateInputsMap(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &evalCtxVals, &evalCtxValsNested)
+			inputsMap := hcl.CreateInputsMapCty(hclConfig.Inputs, pluginContent.Attributes, envVarCtx, &resultsMapCty, &resultsMapCtyNested)
 
 			// declare a new empty map to be passed into the plugin
-			var resultsMap = map[string]string{}
-			var resultsListMap = map[string][]string{}
+			var resultsMap = map[string]cty.Value{}
+			var resultsListMap = map[string][]cty.Value{}
 
 			pluginEnabled := plugins.RunIfEnabled(resourcePlugin, &inputsMap, &resultsMap, &resultsListMap)
 
 			if pluginEnabled {
 				fmt.Println(fmt.Sprintf("DECKER: Ran plugin %d of %d: %s (%s)", index+1, len(resBlocksSorted), resourcePlugin, resourceName))
+
+				// build eval context from plugin results and add it to the ongoing map
+				resultsMapCty[resourceName] = &resultsMap
+
+				reports.WriteStringToFile(paths.GetReportFilePath(resourceName), decoder.GetString(resultsMap["raw_output"]))
 			} else {
 				fmt.Println(fmt.Sprintf("DECKER: [Disabled] Did not run plugin %d of %d: %s (%s)", index+1, len(resBlocksSorted), resourcePlugin, resourceName))
+
+				resultsMap["raw_output"] = encoder.StringVal("")
+
+				// build eval context from plugin results and add it to the ongoing map
+				resultsMapCty[resourceName] = &resultsMap
 			}
-
-			// build eval context from plugin results and add it to the ongoing map
-			evalCtxVals[resourceName] = hcl.BuildEvalContextFromMap(&resultsMap, &resultsListMap)
-
-			reports.WriteStringToFile(paths.GetReportFilePath(resourceName), resultsMap["raw_output"])
 		}
 	}
 }
