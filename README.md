@@ -140,7 +140,7 @@ Right now, plugins are expected to be in a directory relative to wherever the `d
 
 Plugins are expected to be at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.so`.
 
-There should be an `HCL` file next to the `.so` file at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.hcl` that defines its inputs. Currently, only `string` inputs are supported. Each input should have an `input` block that looks like this:
+There should be an `HCL` file next to the `.so` file at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.hcl` that defines its inputs and outputs. Currently, only `string`, `list`, and `map` inputs are supported. Each input should have an `input` block that looks like this:
 
 ```
 input "my_input" {
@@ -181,6 +181,7 @@ input "my_input" {
 │   │               └── xxx.hcl
 │   ├── pkg
 │   │   ├── dependencies/
+│   │   ├── gocty/
 │   │   ├── hcl/
 │   │   ├── paths/
 │   │   ├── plugins/
@@ -195,12 +196,13 @@ input "my_input" {
 ```
 
 - [cmd/decker/main.go](cmd/decker/main.go) is the driver. Its job is to parse a given [config file](examples/), load the appropriate plugins based on the file's `resource` blocks, and run the plugins with the specified inputs.
-- [examples](examples/) has a couple example configurations to get you started with `decker`. If you use the given [docker image](https://hub.docker.com/r/stevenaldinger/decker/), all dependencies should be installed for both config files and things should run smoothly.
+- [examples](examples/) has a couple example configurations to get you started with `decker`. If you use the kali [docker image](https://hub.docker.com/r/stevenaldinger/decker/) (`stevenaldinger/decker:kali`), all dependencies should be installed for all config files and things should run smoothly.
 - [internal/pkg](internal/pkg) is where most of the actual code is. It contains all the packages imported by [main.go](cmd/decker/main.go).
   * [dependencies](internal/pkg/dependencies) is responsible for building the plugin dependency graph and returning a topologically sorted array that ensures plugins are run in a working order.
+  * [gocty](internal/pkg/gocty) offers helpers for encoding and decoding [go-cty](https://github.com/zclconf/go-cty) values which are used to handle dynamic input types.
   * [hcl](internal/pkg/hcl) is responsible for parsing HCL files, including creating evaluation contexts that let blocks properly decode when they depend on other plugin blocks.
   * [paths](internal/pkg/paths) is responsible for returning file paths for the `decker` binary, config files, plugin config files, and generated reports.
   * [plugins](internal/pkg/plugins) is responsible for determining if plugins are enabled and running them.
   * [reports](internal/pkg/reports) is responsible for writing reports to the file system.
-- [internal/app/decker/plugins](internal/app/decker/plugins) are modular pieces of code written as [Golang plugins](https://golang.org/pkg/plugin/), implementing a simple interface that allows them to be loaded and called at run-time with inputs specified in the plugin's config file (also in HCL). An example can be found at [internal/app/decker/plugins/nslookup/nslookup.hcl](internal/app/decker/plugins/nslookup/nslookup.hcl).
+- [internal/app/decker/plugins](internal/app/decker/plugins) are modular pieces of code written as [Golang plugins](https://golang.org/pkg/plugin/), implementing a simple interface that allows them to be loaded and called at run-time with inputs and outputs specified in the plugin's config file (also in HCL). An example can be found at [internal/app/decker/plugins/nslookup/nslookup.hcl](internal/app/decker/plugins/nslookup/nslookup.hcl).
 - [decker config files](examples) offer a declarative way to write penetration tests. The manifests are written in [HashiCorp Configuration Language 2](https://godoc.org/github.com/hashicorp/hcl2/hcl)) and describe the set of plugins to be used in the test as well as their inputs.
