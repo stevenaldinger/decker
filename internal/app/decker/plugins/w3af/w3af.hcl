@@ -10,12 +10,12 @@ input "plugin_enabled" {
   default = "true"
 }
 
-input "verbose" {
-  type = "string"
-  default = "false"
-}
+// input "verbose" {
+//   type = "string"
+//   default = "false"
+// }
 
 // outputs the plugin will return
-output "ip" {
+output "raw_output" {
   type = "string"
 }

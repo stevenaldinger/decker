@@ -15,6 +15,10 @@ input "plugin_enabled" {
   default = "true"
 }
 
+// outputs the plugin will return
+output "raw_output" {
+  type = "string"
+}
 // "8.8.4.4"
 output "dns_server" {
   type = "string"

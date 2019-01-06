@@ -10,6 +10,10 @@ input "plugin_enabled" {
   default = "true"
 }
 
+// outputs the plugin will return
+output "raw_output" {
+  type = "string"
+}
 // "example.com"
 output "host" {
   type = "string"
@@ -18,11 +22,7 @@ output "host" {
 output "host_address" {
   type = "string"
 }
-// "open"
-output "22" {
-  type = "string"
-}
-// "open"
-output "443" {
+// port range "1"-"30000" - "open" or "closed"
+output "1-30000" {
   type = "string"
 }
