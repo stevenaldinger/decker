@@ -1,6 +1,6 @@
-# What is decker
+# Decker - Penetration Testing Orchestration Framework
 
-# Purpose
+## Purpose
 
 `Decker` is a penetration testing orchestration framework. It leverages [HashiCorp Configuration Language 2](https://github.com/hashicorp/hcl2) (the same config language as [Terraform](https://github.com/hashicorp/terraform)) to allow declarative `penetration testing as code`, so your tests can be versioned, shared, reused, and collaborated on with your team or the community.
 
@@ -83,7 +83,7 @@ My friend [Courtney](https://github.com/courtneymiller2010) came to the rescue w
 
 > A future cracker; a software expert skilled at manipulating cyberspace, especially at circumventing security precautions.
 
-# Running an example config with docker
+## Running an example config with docker
 
 Two volumes are mounted:
 
@@ -96,7 +96,7 @@ One environment variable is passed in:
 
 This is referenced in the config files as `{var.target_host}`. `Decker` will loop through all environment variables named `DECKER_*`, stripping away the prefix and setting the rest to lowercase.
 
-```
+```sh
 docker run -it --rm \
   -v "$(pwd)/decker-reports/":/tmp/reports/ \
   -v "$(pwd)/examples/":/decker-config/ \
@@ -104,17 +104,39 @@ docker run -it --rm \
  stevenaldinger/decker:latest decker ./decker-config/example.hcl
 ```
 
-# Contributing
+## Running an example config without docker
+
+You'll likely want to set the directory `decker` writes reports to with the `DECKER_REPORTS_DIR` environment variable.
+
+Something like this would be appropriate. Just make sure whatever you set it to is an existing directory.
+
+```sh
+export DECKER_REPORTS_DIR="$HOME/decker-reports"
+```
+
+You'll also need to set a target host if you're running one of the example config files.
+
+```sh
+export DECKER_TARGET_HOST="<insert hostname here>"
+```
+
+Then just run a config file. Change to the root directory of this repo and run:
+
+```sh
+./decker ./examples/example.hcl
+```
+
+## Contributing
 
 Contributions are very welcome and appreciated. See [docs/contributions.md](docs/contributions.md) for guidelines.
 
-# Development
+## Development
 
 Using docker for development is recommended for a smooth experience. This ensures all dependencies will be installed and ready to go.
 
 Refer to `Directory Structure` below for an overview of the go code.
 
-## Quick Start
+### Quick Start
 
 1. (on host machine): `make docker_build`
 2. (on host machine): `make docker_run` (will start docker container and open an interactive bash session)
@@ -122,11 +144,11 @@ Refer to `Directory Structure` below for an overview of the go code.
 3. (inside container): `make build_all`
 4. (inside container): `make run`
 
-## Initialize git hooks
+### Initialize git hooks
 
 Run `make init` to add a `pre-commit` script that will run [linting](https://github.com/golang/lint) and tests on each commit.
 
-# Plugin Development
+### Plugin Development
 
 `Decker` itself is just a framework that reads config files, determines dependencies in the config files, and runs plugins in an order that ensures plugins with dependencies on other plugins (output of one plugin being an input for another) run after the ones they depend on.
 
@@ -149,7 +171,7 @@ input "my_input" {
 }
 ```
 
-# Directory Structure
+## Directory Structure
 
 ```
 .
