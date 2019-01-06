@@ -10,8 +10,7 @@ resource "nslookup" "nslookup" {
   dns_server = "8.8.4.4"
 }
 resource "nmap" "nmap" {
-  for_each = "${nslookup.ip_address}"
-  host = "${each.key}"
+  host = "${var.target_host}"
   plugin_enabled = "true"
 }
 
