@@ -10,3 +10,12 @@ func GetPluginHCLFilePath(pluginName string) string {
 
 	return filePath
 }
+
+// GetPluginDirectory gets the directory decker searches for plugins.
+func GetPluginDirectory() string {
+	deckerDir := GetDeckerDir()
+
+	pluginDir := deckerDir + "/internal/app/decker/plugins"
+
+	return pluginDir
+}

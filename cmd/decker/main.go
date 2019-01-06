@@ -29,6 +29,9 @@ func main() {
 	hclConfigFile := paths.GetConfigFilePath()
 
 	blocks := hcl.GetBlocksFromConfig(hclConfigFile)
+
+	dependencies.ValidateConfig(blocks)
+
 	varBlockNames := dependencies.GetVariableNames(blocks)
 	resBlocksSorted := dependencies.Sort(blocks)
 
