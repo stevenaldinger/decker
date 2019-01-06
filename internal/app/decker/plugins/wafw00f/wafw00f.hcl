@@ -11,6 +11,9 @@ input "plugin_enabled" {
 }
 
 // outputs the plugin will return
-output "ip" {
+output "raw_output" {
+  type = "string"
+}
+output "waf_detected" {
   type = "string"
 }
