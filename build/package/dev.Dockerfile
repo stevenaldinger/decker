@@ -26,7 +26,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
  && gem install nokogiri -v '1.8.5' --source 'https://rubygems.org/' \
- && gem install bundler \
+ && gem install bundler -v '1.17' \
  && git clone https://github.com/wpscanteam/wpscan /usr/bin/wpscan \
  && cd /usr/bin/wpscan/ \
  && bundle install \
