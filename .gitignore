@@ -18,4 +18,7 @@
 /_vender-*
 /vendor
 
+# private and under-development plugins
+/internal/app/decker/plugins-pro
+
 # stuff generated when project runs

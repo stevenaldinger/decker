@@ -3,9 +3,9 @@ package plugins
 import (
 	"fmt"
 	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/stevenaldinger/decker/internal/pkg/paths"
 	"github.com/zclconf/go-cty/cty"
 	"os"
-	"path/filepath"
 	"plugin"
 )
 
@@ -23,15 +23,7 @@ type Plugin interface {
 // is expected to be PLUGIN_NAME.so) and call it with the maps supplied to
 // it as arguments.
 func runPlugin(name string, inputsMap, resultsMap *map[string]cty.Value, resultsListMap *map[string][]cty.Value) {
-	// module path
-	path, err := os.Executable()
-	if err != nil {
-		fmt.Println("Error finding executable path:", err)
-		os.Exit(1)
-	}
-
-	dir := filepath.Dir(path)
-	mod := dir + "/internal/app/decker/plugins/" + name + "/" + name + ".so"
+	mod := paths.GetPluginPath(name) + "/" + name + ".so"
 
 	// load module - open the .so file to load the symbols
 	plug, err := plugin.Open(mod)

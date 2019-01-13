@@ -158,9 +158,9 @@ The recommended way to get started with `decker` plugin development is by clonin
 
 ## Installing plugins
 
-Right now, plugins are expected to be in a directory relative to wherever the `decker` binary is.
+By default, plugins are expected to be in a directory relative to wherever the `decker` binary is, at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.so`. Additional paths can be added by setting the `DECKER_PLUGIN_DIRS` environment variable. The default plugin path will still be used if `DECKER_PLUGIN_DIRS` is set.
 
-Plugins are expected to be at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.so`.
+Example: `export DECKER_PLUGIN_DIRS="/path/to/my/plugins:/additional/path/to/plugins"`
 
 There should be an `HCL` file next to the `.so` file at `<decker binary>/internal/app/decker/plugins/<plugin name>/<plugin name>.hcl` that defines its inputs and outputs. Currently, only `string`, `list`, and `map` inputs are supported. Each input should have an `input` block that looks like this:
 
