@@ -103,7 +103,7 @@ func main() {
 				(*resultsMapCtyNested[resourceName])[string(eachKey)] = &resultsMap
 
 				if pluginEnabled {
-					reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]"), decoder.GetString(resultsMap["raw_output"]))
+					reports.WriteStringToFile(paths.GetReportFilePath(resourceName+"["+string(eachKey)+"]", "txt"), decoder.GetString(resultsMap["raw_output"]))
 				}
 			}
 		} else {
@@ -121,7 +121,7 @@ func main() {
 				// build eval context from plugin results and add it to the ongoing map
 				resultsMapCty[resourceName] = &resultsMap
 
-				reports.WriteStringToFile(paths.GetReportFilePath(resourceName), decoder.GetString(resultsMap["raw_output"]))
+				reports.WriteStringToFile(paths.GetReportFilePath(resourceName, "txt"), decoder.GetString(resultsMap["raw_output"]))
 			} else {
 				fmt.Println(fmt.Sprintf("DECKER: [Disabled] Did not run plugin %d of %d: %s (%s)", index+1, len(resBlocksSorted), resourcePlugin, resourceName))
 
@@ -130,6 +130,25 @@ func main() {
 				// build eval context from plugin results and add it to the ongoing map
 				resultsMapCty[resourceName] = &resultsMap
 			}
+		}
+	}
+
+	// run outputs plugin
+	outputsResults := plugins.RunOutputsPlugin(&resultsMapCty)
+
+	if os.Getenv("DECKER_OUTPUTS_XML") == "true" {
+		reports.WriteStringToFile(paths.GetReportFilePath("All", "xml"), outputsResults.AllXML)
+
+		for uniqueName, outputVal := range outputsResults.Results {
+			reports.WriteStringToFile(paths.GetReportFilePath(uniqueName, "xml"), outputVal.XML)
+		}
+	}
+
+	if os.Getenv("DECKER_OUTPUTS_JSON") == "true" {
+		reports.WriteStringToFile(paths.GetReportFilePath("All", "json"), outputsResults.AllJSON)
+
+		for uniqueName, outputVal := range outputsResults.Results {
+			reports.WriteStringToFile(paths.GetReportFilePath(uniqueName, "json"), outputVal.JSON)
 		}
 	}
 }

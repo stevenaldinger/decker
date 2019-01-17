@@ -77,6 +77,15 @@ resource "metasploit" "metasploit" {
 
 ```
 
+## Output formats
+
+Several output formats are available and more than one can be selected at the same time.
+
+Setting `DECKER_OUTPUTS_JSON` or `DECKER_OUTPUTS_XML` to `"true"` will output `json` and `xml` formatted files respectively.
+
+1. Output `.json` files in addition to plain text: `export DECKER_OUTPUTS_JSON="true"`
+2. Output `.xml` files in addition to plain text: `export DECKER_OUTPUTS_XML="true"`
+
 ## Why the name decker?
 
 My friend [Courtney](https://github.com/courtneymiller2010) came to the rescue when I was struggling to come up with a name and found [decker](http://www.catb.org/esr/sf-words/glossary.html#decker) in a [SciFi word glossary](http://www.catb.org/esr/sf-words/glossary.html)... and it sounded cool.
