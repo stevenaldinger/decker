@@ -17,6 +17,14 @@ type Plugin interface {
 	Run(*map[string]cty.Value, *map[string]cty.Value)
 }
 
+// OutputPlugin is an interface for each Plugin to implement. All this includes is a single
+// function, "Run(*map[string]string, *map[string]string)" which takes a map
+// of inputs and an empty map of outputs that the Plugin is expected to populate
+type OutputPlugin interface {
+	// Run(inputsMap)
+	Run(*map[string]*map[string]cty.Value, *OutputsResults)
+}
+
 // runPlugin takes the name of a plugin, a map of inputs, and an empty map for results,
 // this function will load the plugin based on Decker convention (plugin is
 // expected to be in ./internal/app/decker/plugins/PLUGIN_NAME and the .so file
@@ -63,4 +71,57 @@ func RunIfEnabled(pluginName string, inputsMap, resultsMap *map[string]cty.Value
 	}
 
 	return false
+}
+
+// OutputResults holds XML and JSON string representations of a plugin's outputs
+type OutputResults struct {
+	XML  string
+	JSON string
+}
+
+// OutputsResults holds XML and JSON string representations of the combined
+// plugin's outputs as well as a map of the XML/JSON string representations of
+// individual plugins' outputs
+type OutputsResults struct {
+	Results map[string]OutputResults
+	AllXML  string
+	AllJSON string
+}
+
+// RunOutputsPlugin takes a map of inputs, runs the "outputs" plugin, and
+// returns JSON/XML string representations of the inputs.
+func RunOutputsPlugin(inputsMap *map[string]*map[string]cty.Value) OutputsResults {
+	mod := paths.GetPluginPath("outputs") + "/outputs.so"
+
+	// load module - open the .so file to load the symbols
+	plug, err := plugin.Open(mod)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// look up a symbol (exported variable - Plugin)
+	symPlugin, err := plug.Lookup("Plugin")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// 3. Assert that loaded symbol is of interface type - Plugin
+	var plugin OutputPlugin
+	plugin, ok := symPlugin.(OutputPlugin)
+	if !ok {
+		fmt.Println("unexpected type from module symbol OutputPlugin")
+		os.Exit(1)
+	}
+
+	outputsResults := OutputsResults{
+		Results: map[string]OutputResults{},
+		AllXML:  "",
+		AllJSON: "",
+	}
+
+	plugin.Run(inputsMap, &outputsResults)
+
+	return outputsResults
 }

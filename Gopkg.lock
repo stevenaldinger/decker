@@ -18,6 +18,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:8e18047715934056ed06c61d4d512ffd80787671d95bb1808cebb56adac56d34"
+  name = "github.com/clbanning/mxj"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "79cfe7d36986ce108bd1e2c1d0a2a85c895237a2"
+  version = "v1.8.3"
+
+[[projects]]
   digest = "1:2e3c336fc7fde5c984d2841455a658a6d626450b1754a854b3b32e7a8f49a07a"
   name = "github.com/google/go-cmp"
   packages = [
@@ -134,12 +142,14 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/clbanning/mxj",
     "github.com/hashicorp/hcl2/gohcl",
     "github.com/hashicorp/hcl2/hcl",
     "github.com/hashicorp/hcl2/hclparse",
     "github.com/t94j0/nmap",
     "github.com/zclconf/go-cty/cty",
     "github.com/zclconf/go-cty/cty/gocty",
+    "github.com/zclconf/go-cty/cty/json",
     "gonum.org/v1/gonum/graph",
     "gonum.org/v1/gonum/graph/simple",
     "gonum.org/v1/gonum/graph/topo",
