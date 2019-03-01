@@ -110,8 +110,10 @@ docker run -it --rm \
   -v "$(pwd)/decker-reports/":/tmp/reports/ \
   -v "$(pwd)/examples/":/decker-config/ \
   -e DECKER_TARGET_HOST=example.com \
- stevenaldinger/decker:latest decker ./decker-config/example.hcl
+ stevenaldinger/decker:kali decker ./decker-config/example.hcl
 ```
+
+When `decker` finishes running the config, look in `./decker-reports` for the outputs.
 
 ## Running an example config without docker
 
