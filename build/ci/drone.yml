@@ -7,3 +7,6 @@ pipeline:
       repo: stevenaldinger/decker
       auto_tag: true
       auto_tag_suffix: minimal
+  trigger:
+    event:
+    - tag
