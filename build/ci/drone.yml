@@ -11,6 +11,11 @@ steps:
     repo: stevenaldinger/decker
     auto_tag: true
     auto_tag_suffix: minimal
-# trigger:
-#   event:
-#   - tag
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+trigger:
+  event:
+  - tag

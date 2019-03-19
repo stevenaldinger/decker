@@ -1,3 +1,5 @@
+[![Build Status](https://cloud.drone.io/api/badges/stevenaldinger/decker/status.svg)](https://cloud.drone.io/stevenaldinger/decker)
+
 # Decker - Penetration Testing Orchestration Framework
 
 ## Purpose
