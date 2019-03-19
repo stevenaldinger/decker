@@ -1,10 +1,12 @@
 ---
 pipeline:
-  test:
-    image: stevenaldinger/golang-dep:1.10
-    commands:
-    - go test -v -cover github.com/stevenaldinger/decker/internal/pkg/dependencies
-    - go test -v -cover github.com/stevenaldinger/decker/internal/pkg/hcl
-    - go test -v -cover github.com/stevenaldinger/decker/internal/pkg/paths
-    - go test -v -cover github.com/stevenaldinger/decker/internal/pkg/plugins
-    - go test -v -cover github.com/stevenaldinger/decker/internal/pkg/reports
+  steps:
+  - name: decker
+    image: plugins/docker
+    settings:
+      repo: stevenaldinger/decker
+      auto_tag: true
+      auto_tag_suffix: minimal
+  trigger:
+    event:
+    - tag

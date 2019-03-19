@@ -1,4 +1,4 @@
-FROM golang:1.10
+FROM golang:1.12.1
 
 # install dep
 RUN apt-get update \
