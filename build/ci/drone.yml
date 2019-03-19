@@ -1,12 +1,16 @@
 ---
-pipeline:
-  steps:
-  - name: decker
-    image: plugins/docker
-    settings:
-      repo: stevenaldinger/decker
-      auto_tag: true
-      auto_tag_suffix: minimal
-  trigger:
-    event:
-    - tag
+kind: pipeline
+name: default
+workspace:
+  base: /go
+  path: src/github.com/stevenaldinger/decker
+steps:
+- name: decker
+  image: plugins/docker
+  settings:
+    repo: stevenaldinger/decker
+    auto_tag: true
+    auto_tag_suffix: minimal
+# trigger:
+#   event:
+#   - tag
