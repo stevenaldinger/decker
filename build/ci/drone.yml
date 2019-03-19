@@ -5,12 +5,22 @@ workspace:
   base: /go
   path: src/github.com/stevenaldinger/decker
 steps:
-- name: decker
+- name: build-minimal
   image: plugins/docker
   settings:
     repo: stevenaldinger/decker
     auto_tag: true
     auto_tag_suffix: minimal
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+- name: build-kali
+  image: plugins/docker
+  settings:
+    repo: stevenaldinger/decker
+    auto_tag: true
+    auto_tag_suffix: kali
     username:
       from_secret: docker_username
     password:
