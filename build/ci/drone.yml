@@ -9,6 +9,7 @@ steps:
   image: plugins/docker
   settings:
     repo: stevenaldinger/decker
+    dockerfile: build/package/minimal.Dockerfile
     auto_tag: true
     auto_tag_suffix: minimal
     username:
@@ -19,6 +20,7 @@ steps:
   image: plugins/docker
   settings:
     repo: stevenaldinger/decker
+    dockerfile: build/package/kali.Dockerfile
     auto_tag: true
     auto_tag_suffix: kali
     username:
