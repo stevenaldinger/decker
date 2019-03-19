@@ -1,6 +1,6 @@
-FROM stevenaldinger/decker:latest as decker
+FROM stevenaldinger/decker:minimal as decker
 
-FROM stevenaldinger/w3af:0.0.1 as w3af
+# FROM stevenaldinger/w3af:0.0.1 as w3af
 
 FROM kalilinux/kali-linux-docker
 
@@ -85,39 +85,39 @@ COPY --from=decker /go/bin/decker /go/bin/decker
 COPY --from=decker /go/bin/internal/app/decker/plugins /go/bin/internal/app/decker/plugins
 COPY --from=decker /go/bin/examples /go/bin/examples
 
-COPY --from=w3af /home/w3af/w3af /usr/bin/w3af
-
-ENV LC_ALL=C
-
-# w3af_console fails but craete /tmp/w3af_dependency_install.sh
-# sed changes the install script to add the -y and not require input
-RUN cd /usr/bin/w3af \
- && pip install --upgrade pip \
- &&  ./w3af_console \
- ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
- && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
- && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
- && /tmp/w3af_dependency_install.sh \
- ; ./w3af_gui \
- ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
- && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
- && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
- && /tmp/w3af_dependency_install.sh \
- # Cleanup to make the image smaller
- ; rm /tmp/w3af_dependency_install.sh \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && rm -rf /tmp/pip-build-root \
- && sed "s/'accepted-disclaimer': 'false'/'accepted-disclaimer': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py \
- && sed "s/'skip-dependencies-check': 'false'/'skip-dependencies-check': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py
-
-RUN pip install \
-     acora \
-     bravado_core \
-     diff_match_patch \
-     esmre \
-     pebble \
-     tldextract
+# COPY --from=w3af /home/w3af/w3af /usr/bin/w3af
+#
+# ENV LC_ALL=C
+#
+# # w3af_console fails but craete /tmp/w3af_dependency_install.sh
+# # sed changes the install script to add the -y and not require input
+# RUN cd /usr/bin/w3af \
+#  && pip install --upgrade pip \
+#  &&  ./w3af_console \
+#  ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
+#  && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
+#  && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
+#  && /tmp/w3af_dependency_install.sh \
+#  ; ./w3af_gui \
+#  ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
+#  && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
+#  && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
+#  && /tmp/w3af_dependency_install.sh \
+#  # Cleanup to make the image smaller
+#  ; rm /tmp/w3af_dependency_install.sh \
+#  && apt-get clean \
+#  && rm -rf /var/lib/apt/lists/* \
+#  && rm -rf /tmp/pip-build-root \
+#  && sed "s/'accepted-disclaimer': 'false'/'accepted-disclaimer': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py \
+#  && sed "s/'skip-dependencies-check': 'false'/'skip-dependencies-check': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py
+#
+# RUN pip install \
+#      acora \
+#      bravado_core \
+#      diff_match_patch \
+#      esmre \
+#      pebble \
+#      tldextract
 
 
 # ENTRYPOINT ["bash"]
