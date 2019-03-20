@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/stevenaldinger/decker/internal/pkg/plugins"
+	"github.com/stevenaldinger/decker/pkg/plugins"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 
