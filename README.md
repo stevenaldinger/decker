@@ -1,3 +1,7 @@
+**HEADS UP, SORRY EVERYBODY: Decker relies on a dynamic type system (despite that being a rare need in golang) to support the "unlimited" nature of the plugins. I had intended on a separate `decker-plugin` repo that would be bare-bones and easy to develop on, but unfortunately it doesn't seem like that's an option due to the dependency on that underlying type system library. Decker will remain a plugin-based architecture but for now any developers will need to compile their plugins inside this core repo. I'll be working on documentation and examples for that as soon as I can.
+
+Thank you everyone for the overwhelming support and interest!**
+
 [![Build Status](https://cloud.drone.io/api/badges/stevenaldinger/decker/status.svg)](https://cloud.drone.io/stevenaldinger/decker)
 
 # Decker - Penetration Testing Orchestration Framework
