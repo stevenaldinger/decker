@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/stevenaldinger/decker/pkg/gocty"
 	"github.com/t94j0/nmap"
 	"github.com/zclconf/go-cty/cty"
 	"strconv"
