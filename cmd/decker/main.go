@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/stevenaldinger/decker/internal/pkg/dependencies"
-	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/stevenaldinger/decker/pkg/gocty"
 	"github.com/stevenaldinger/decker/internal/pkg/hcl"
 	"github.com/stevenaldinger/decker/internal/pkg/paths"
 	"github.com/stevenaldinger/decker/internal/pkg/plugins"

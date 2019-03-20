@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/stevenaldinger/decker/internal/pkg/gocty"
+	"github.com/stevenaldinger/decker/pkg/gocty"
 	"github.com/zclconf/go-cty/cty"
 	"os"
 	"os/exec"
