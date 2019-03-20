@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/stevenaldinger/decker/internal/pkg/dependencies"
-	"github.com/stevenaldinger/decker/pkg/gocty"
 	"github.com/stevenaldinger/decker/internal/pkg/hcl"
 	"github.com/stevenaldinger/decker/internal/pkg/paths"
-	"github.com/stevenaldinger/decker/internal/pkg/plugins"
 	"github.com/stevenaldinger/decker/internal/pkg/reports"
+	"github.com/stevenaldinger/decker/pkg/gocty"
+	"github.com/stevenaldinger/decker/pkg/plugins"
 )
 
 // loop over list of strings and return true if list contains a given string

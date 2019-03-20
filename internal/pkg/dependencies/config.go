@@ -3,7 +3,7 @@ package dependencies
 import (
 	"fmt"
 	"github.com/hashicorp/hcl2/hcl"
-	"github.com/stevenaldinger/decker/internal/pkg/plugins"
+	"github.com/stevenaldinger/decker/pkg/plugins"
 	"os"
 )
 
