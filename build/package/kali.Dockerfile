@@ -1,8 +1,56 @@
-FROM stevenaldinger/decker:minimal as decker
+FROM kalilinux/kali-linux-docker:latest as development
 
-# FROM stevenaldinger/w3af:0.0.1 as w3af
+ARG GO_INSTALL_DIR_PREFIX="/usr/local"
+ARG GOPATH="/go"
+ARG GOBIN="${GOPATH}/bin"
+ARG UNAME_S="Linux"
+ARG GOARCH="amd64"
+ARG TEMP_DL_DIR="/tmp/downloads"
+ARG GOLANG_DL_BASE_URL="https://dl.google.com/go/go"
+ARG GO_DEP_INSTALL_SCRIPT="https://raw.githubusercontent.com/golang/dep/master/install.sh"
+ARG GO_DEP_RELEASE_TAG="v0.5.1"
 
-FROM kalilinux/kali-linux-docker
+ARG GOLANG_VERSION="1.12.1"
+ARG GO_CHECKSUM="2a3fdabf665496a0db5f41ec6af7a9b15a49fbe71a85a50ca38b1f13a103aeec"
+ARG YOUR_GITHUB_HANDLE="stevenaldinger"
+ARG APP_NAME="decker"
+
+ENV \
+ GOLANG_VERSION="${GOLANG_VERSION}" \
+ DEP_RELEASE_TAG="${GO_DEP_RELEASE_TAG}" \
+ GOPATH="/go" \
+ GOBIN="/go/bin" \
+ GOARCH="amd64" \
+ GOROOT="${GO_INSTALL_DIR_PREFIX}/go" \
+ GO_BIN_PATH_HOST="${TEMP_DL_DIR}/go${GOLANG_VERSION}.${UNAME_S}-${GOARCH}.tar.gz" \
+ PATH="$PATH:/go/bin:${GO_INSTALL_DIR_PREFIX}/go/bin"
+
+ENV GO_BIN_URL_REMOTE="${GOLANG_DL_BASE_URL}${GOLANG_VERSION}.${UNAME_S}-${GOARCH}.tar.gz"
+
+# Install golang and dep
+# Find versions and DL links here: https://golang.org/dl/
+RUN apt-get update \
+ && apt-get -y install \
+     build-essential \
+     ca-certificates \
+     curl \
+     git \
+ && mkdir -p "${GOBIN}" "${TEMP_DL_DIR}" "${GO_INSTALL_DIR_PREFIX}/go" \
+ && curl -L "${GO_BIN_URL_REMOTE}" \
+      --output "${GO_BIN_PATH_HOST}" \
+      --silent \
+ && tar -C "${GO_INSTALL_DIR_PREFIX}" -zxf "${GO_BIN_PATH_HOST}" \
+ && go version \
+ && curl "${GO_DEP_INSTALL_SCRIPT}" \
+      --output "${TEMP_DL_DIR}/install-dep.sh" \
+      --silent \
+ && chmod a+x "${TEMP_DL_DIR}/install-dep.sh" \
+ && cat "${TEMP_DL_DIR}/install-dep.sh" \
+ && "${TEMP_DL_DIR}/install-dep.sh" \
+ && rm "${TEMP_DL_DIR}/install-dep.sh" \
+ && go get -u golang.org/x/lint/golint \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* "${TEMP_DL_DIR}"
 
 # install ruby, bundler, nokogiri(necessary for bundler install)
 # zlib (necessary for nokogiri install)
@@ -51,74 +99,12 @@ RUN apt-get update \
 RUN apt-get update \
  && apt-get install -y kali-linux-full
 
-# RUN curl -Lo /tmp/python-support_1.0.15_all.deb http://ftp.br.debian.org/debian/pool/main/p/python-support/python-support_1.0.15_all.deb \
-#  && dpkg -i /tmp/python-support_1.0.15_all.deb \
-#  && curl -Lo /tmp/python-webkit_1.1.8-3_amd64.deb http://ftp.br.debian.org/debian/pool/main/p/pywebkitgtk/python-webkit_1.1.8-3_amd64.deb \
-#  && dpkg -i /tmp/python-webkit_1.1.8-3_amd64.deb
-#
-#  && curl -sL https://deb.nodesource.com/setup_8.x --output /tmp/nodejs-deb \
-#  && bash /tmp/nodejs-deb \
-#  && apt-get install -y nodejs \
-#  && npm install -g retire \
-#  && git clone https://github.com/andresriancho/w3af.git /usr/bin/w3af \
-#  && cd /usr/bin/w3af \
-#  && ./w3af_console \
-#  ; . /tmp/w3af_dependency_install.sh
+WORKDIR /go/src/github.com/${YOUR_GITHUB_HANDLE}/${APP_NAME}
 
-# add decker and w3af to the path
-ENV PATH="$PATH:/go/bin:/usr/bin/w3af"
-# decker expects this to exist for the reports it generates
-RUN mkdir -p /tmp/reports
+COPY . .
 
-RUN apt-get update \
- && apt-get install -y \
-      libxml2-dev \
-      libxslt1-dev \
-      python-dev \
-      zlib1g-dev \
-      nodejs \
-      npm \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN dep ensure -v \
+ && make build_all \
+ && chmod a+x ./$APP_NAME
 
-COPY --from=decker /go/bin/decker /go/bin/decker
-COPY --from=decker /go/bin/internal/app/decker/plugins /go/bin/internal/app/decker/plugins
-COPY --from=decker /go/bin/examples /go/bin/examples
-
-# COPY --from=w3af /home/w3af/w3af /usr/bin/w3af
-#
-# ENV LC_ALL=C
-#
-# # w3af_console fails but craete /tmp/w3af_dependency_install.sh
-# # sed changes the install script to add the -y and not require input
-# RUN cd /usr/bin/w3af \
-#  && pip install --upgrade pip \
-#  &&  ./w3af_console \
-#  ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
-#  && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
-#  && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
-#  && /tmp/w3af_dependency_install.sh \
-#  ; ./w3af_gui \
-#  ; sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh \
-#  && sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh \
-#  && sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh \
-#  && /tmp/w3af_dependency_install.sh \
-#  # Cleanup to make the image smaller
-#  ; rm /tmp/w3af_dependency_install.sh \
-#  && apt-get clean \
-#  && rm -rf /var/lib/apt/lists/* \
-#  && rm -rf /tmp/pip-build-root \
-#  && sed "s/'accepted-disclaimer': 'false'/'accepted-disclaimer': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py \
-#  && sed "s/'skip-dependencies-check': 'false'/'skip-dependencies-check': 'true'/g" -i /usr/bin/w3af/w3af/core/data/db/startup_cfg.py
-#
-# RUN pip install \
-#      acora \
-#      bravado_core \
-#      diff_match_patch \
-#      esmre \
-#      pebble \
-#      tldextract
-
-
-# ENTRYPOINT ["bash"]
 CMD ["bash"]

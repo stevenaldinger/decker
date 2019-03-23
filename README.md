@@ -1,7 +1,3 @@
-**HEADS UP, SORRY EVERYBODY: Decker relies on a dynamic type system (despite that being a rare need in golang) to support the "unlimited" nature of the plugins. I had intended on a separate `decker-plugin` repo that would be bare-bones and easy to develop on, but unfortunately it doesn't seem like that's an option due to the dependency on that underlying type system library. Decker will remain a plugin-based architecture but for now any developers will need to compile their plugins inside this core repo. I'll be working on documentation and examples for that as soon as I can.
-
-Thank you everyone for the overwhelming support and interest!**
-
 [![Build Status](https://cloud.drone.io/api/badges/stevenaldinger/decker/status.svg)](https://cloud.drone.io/stevenaldinger/decker)
 
 # Decker - Penetration Testing Orchestration Framework
@@ -171,7 +167,7 @@ Run `make init` to add a `pre-commit` script that will run [linting](https://git
 
 The real power of `decker` comes from plugins. Developing a plugin can be as simple or as complex as you want it to be, as long as the end result is a `.so` file containing the compiled plugin code and a `.hcl` file in the same directory declaring the inputs the plugin is expecting a user to configure.
 
-The recommended way to get started with `decker` plugin development is by cloning the [decker-plugin](https://github.com/stevenaldinger/decker-plugin) repository and following the steps in its documentation. It should only take you a few minutes to get a "Hello World" `decker` plugin running.
+Check out [docs/building_plugins.md](./docs/building_plugins.md) to get started on your first plugin. It should only take you a few minutes to get a "Hello World" `decker` plugin running.
 
 ## Installing plugins
 

@@ -4,7 +4,7 @@ services:
   decker:
     container_name: decker
     hostname: decker
-    image: "stevenaldinger/decker"
+    image: "stevenaldinger/decker:kali"
     build:
       context: ../
       dockerfile: build/package/Dockerfile

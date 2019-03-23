@@ -22,6 +22,9 @@ clean:
 build_plugins:
 	@$(BASE_DIR)/scripts/build-plugins.sh $(BASE_DIR)/internal/app/decker/plugins
 
+build_plugin:
+	@$(BASE_DIR)/scripts/build-plugins.sh $(BASE_DIR)/internal/app/decker/plugins $(plugin)
+
 build_decker:
 	@cd $(BASE_DIR)/cmd/decker && \
 		echo "Building" $(APP_NAME) && \
@@ -30,10 +33,10 @@ build_decker:
 build_all: build_plugins build_decker
 
 docker_build:
-	@docker build -f ./build/package/dev.Dockerfile -t stevenaldinger/$(APP_NAME)-dev:latest .
+	@docker build -f ./build/package/kali.Dockerfile -t stevenaldinger/$(APP_NAME):latest .
 
 docker_build_prod:
-	@docker build -f ./build/package/Dockerfile -t stevenaldinger/$(APP_NAME):latest .
+	@docker build -f ./build/package/kali.Dockerfile -t stevenaldinger/$(APP_NAME):latest .
 
 docker_build_kali:
 	@docker build -f ./build/package/kali.Dockerfile -t stevenaldinger/$(APP_NAME):kali .
@@ -58,13 +61,16 @@ docker_build_and_push: docker_build_minimal docker_build_prod docker_build_kali
 run:
 	@$(BASE_DIR)/$(APP_NAME) ./examples/example.hcl
 
+run_hello_world:
+	@$(BASE_DIR)/$(APP_NAME) ./examples/hello-world.hcl
+
 docker_run:
 	@echo "Forwarding port 6060 for godoc usage within the container."
 	@docker run -it --rm \
 		-v $(BASE_DIR):/go/src/github.com/stevenaldinger/$(APP_NAME) \
 		-v $(HOME)/decker-reports:/tmp/reports \
 		-p 6060:6060 \
-	 stevenaldinger/$(APP_NAME)-dev:latest bash
+	 stevenaldinger/$(APP_NAME):kali bash
 
 docker_run_prod:
 	@docker run -it --rm \
