@@ -31,3 +31,39 @@ steps:
 trigger:
   event:
   - tag
+---
+kind: pipeline
+name: master
+workspace:
+  base: /go
+  path: src/github.com/stevenaldinger/decker
+steps:
+- name: build-minimal
+  image: plugins/docker
+  settings:
+    repo: stevenaldinger/decker
+    dockerfile: build/package/minimal.Dockerfile
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    tags:
+    - minimal
+    when:
+      branch:
+      - master
+- name: build-kali
+  image: plugins/docker
+  settings:
+    repo: stevenaldinger/decker
+    dockerfile: build/package/kali.Dockerfile
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    tags:
+    - latest
+    - kali
+    when:
+      branch:
+      - master
