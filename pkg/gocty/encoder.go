@@ -22,6 +22,11 @@ func (*Encoder) ListVal(val []cty.Value) cty.Value {
 	return cty.ListVal(val)
 }
 
+// ListVal takes a map of cty values and returns a cty value of type list.
+func (*Encoder) MapVal(val map[string]cty.Value) cty.Value {
+	return cty.ObjectVal(val)
+}
+
 // BoolVal takes a boolean and returns a cty value.
 func (*Encoder) BoolVal(val bool) cty.Value {
 	return cty.BoolVal(val)
