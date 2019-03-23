@@ -52,6 +52,8 @@ steps:
     when:
       branch:
       - master
+      event:
+      - push
 - name: build-kali
   image: plugins/docker
   settings:
@@ -67,3 +69,5 @@ steps:
     when:
       branch:
       - master
+      event:
+      - push
