@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
           - name: decker
-            image: stevenaldinger/decker:latest
+            image: stevenaldinger/decker:kali
             args:
             - decker
             - /go/bin/examples/example.hcl

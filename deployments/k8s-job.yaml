@@ -8,6 +8,6 @@ spec:
     spec:
       containers:
       - name: decker
-        image: stevenaldinger/decker:latest
+        image: stevenaldinger/decker:kali
         command: ["decker",  "/go/bin/examples/example.hcl"]
       restartPolicy: Never
