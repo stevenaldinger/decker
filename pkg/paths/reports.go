@@ -22,3 +22,9 @@ func GetReportFilePath(resourceName, extension string) string {
 
 	return filePath
 }
+
+// GetReportsDir returns a directory can be set using environment variable
+// DECKER_REPORTS_DIR or will default to "/tmp/reports"
+func GetReportsDir() string {
+	return getEnv("DECKER_REPORTS_DIR", "/tmp/reports")
+}

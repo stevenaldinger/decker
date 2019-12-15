@@ -2,7 +2,7 @@ package hcl
 
 import (
 	"github.com/hashicorp/hcl2/hcl"
-	"github.com/stevenaldinger/decker/internal/pkg/paths"
+	"github.com/stevenaldinger/decker/pkg/paths"
 )
 
 // PluginInputConfig is used in conjunction with gohcl to decode HCL attributes

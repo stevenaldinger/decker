@@ -2,7 +2,7 @@ package plugins
 
 import (
 	"fmt"
-	"github.com/stevenaldinger/decker/internal/pkg/paths"
+	"github.com/stevenaldinger/decker/pkg/paths"
 	"github.com/stevenaldinger/decker/pkg/gocty"
 	"github.com/zclconf/go-cty/cty"
 	"os"

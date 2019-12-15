@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"github.com/stevenaldinger/decker/internal/pkg/paths"
+	"github.com/stevenaldinger/decker/pkg/paths"
 	"io/ioutil"
 	"log"
 	"os"

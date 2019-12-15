@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/zclconf/go-cty/cty"
+
+	// log "github.com/sirupsen/logrus"
 )
 
 func contains(s []string, e string) bool {
@@ -77,31 +79,32 @@ func BuildEvalContextFromMap(m *map[string]string, lm *map[string][]string) *map
 // available using "var" prefix in config files, and also loops over all the
 // aggregated results maps from plugins that have run and makes them available
 // for the next round of HCL decoding.
-func BuildEvalContext(envVarsCtx *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *hcl.EvalContext {
+func BuildEvalContext(envVarsCtx *map[string]cty.Value, key string, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) *hcl.EvalContext {
 	var Variables = map[string]cty.Value{}
 
 	Variables["var"] = cty.ObjectVal(*envVarsCtx)
 
-	for key, element := range *runningVals {
-		Variables[key] = cty.ObjectVal(*element)
+	for k, element := range *runningVals {
+		Variables[k] = cty.ObjectVal(*element)
 	}
 
-	for key, nestedVal := range *runningValsNested {
-		for nestedKey, element := range *nestedVal {
-			if _, ok := Variables[key]; ok {
-				// key already exists in map, need to merge them
-				Variables[key] = cty.ObjectVal(map[string]cty.Value{
-					key:       Variables[key],
-					nestedKey: cty.ObjectVal(*element),
-				})
-			} else {
-				Variables[key] = cty.ObjectVal(map[string]cty.Value{
-					nestedKey: cty.ObjectVal(*element),
-				})
-			}
+	if key != "" {
+		Variables["each"] = cty.ObjectVal(map[string]cty.Value{
+			"key": cty.StringVal(key),
+		})
+	}
+
+	for k, nestedVal := range *runningValsNested {
+		m := map[string]cty.Value{}
+
+		for kv, element := range *nestedVal {
+			m[kv] = cty.ObjectVal(*element)
 		}
+
+		Variables[k] = cty.ObjectVal(m)
 	}
 
+	// https://github.com/hashicorp/hcl2/blob/master/guide/go_expression_eval.rst#defining-variables
 	ctx := &hcl.EvalContext{
 		Variables: Variables,
 	}

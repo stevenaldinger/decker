@@ -8,8 +8,11 @@ import (
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
+
+	// log "github.com/sirupsen/logrus"
 )
 
+// THIS IS NOT BEING USED ANYWHERE
 // DecodeHCLResourceBlock calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Resource block with the latest
 // context (this is the magic allowing outputs from one plugin to work
@@ -18,7 +21,7 @@ func DecodeHCLResourceBlock(block *hcl.Block, envVals *map[string]cty.Value, run
 	var c ResourceConfig
 
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
+	ctx := BuildEvalContext(envVals, "", runningVals, runningValsNested)
 
 	diags := gohcl.DecodeBody(block.Body, ctx, &c)
 
@@ -32,9 +35,9 @@ func DecodeHCLResourceBlock(block *hcl.Block, envVals *map[string]cty.Value, run
 // DecodeHCLAttributeCty calls BuildEvalContext() with the plugin results aggregated from each
 // iterative run and attempts to decode a Block's Attribute's Expression
 // using the context
-func DecodeHCLAttributeCty(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value, defVal string) cty.Value {
+func DecodeHCLAttributeCty(attribute *hcl.Attribute, key string, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value, defVal string) cty.Value {
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
+	ctx := BuildEvalContext(envVals, key, runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 
@@ -46,7 +49,7 @@ func DecodeHCLAttributeCty(attribute *hcl.Attribute, envVals *map[string]cty.Val
 // using the context. This is used in the "for_each" logic, not sure if its still needed.
 func DecodeHCLListAttribute(attribute *hcl.Attribute, envVals *map[string]cty.Value, runningVals *map[string]*map[string]cty.Value, runningValsNested *map[string]*map[string]*map[string]cty.Value) string {
 	// will return evalcontext with environment variables
-	ctx := BuildEvalContext(envVals, runningVals, runningValsNested)
+	ctx := BuildEvalContext(envVals, "", runningVals, runningValsNested)
 
 	ctyVal, _ := attribute.Expr.Value(ctx)
 

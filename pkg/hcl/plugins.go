@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hcl2/hclparse"
 	"github.com/zclconf/go-cty/cty"
+
+	// log "github.com/sirupsen/logrus"
 )
 
 func parsePluginHCL(hclFilePath string) *PluginConfig {
@@ -117,7 +119,7 @@ func GetPluginContent(forEach bool, block *hcl.Block, hclFilePath string) (*Plug
 
 // CreateInputsMapCty decodes the HCL attributes with an evaluation context
 // consisting of the outputs of all previously run plugins
-func CreateInputsMapCty(inputs []PluginInputConfig, attributes hcl.Attributes, envVals *map[string]cty.Value, evalVals *map[string]*map[string]cty.Value, evalValsNested *map[string]*map[string]*map[string]cty.Value) map[string]cty.Value {
+func CreateInputsMapCty(inputs []PluginInputConfig, key string, attributes hcl.Attributes, envVals *map[string]cty.Value, evalVals *map[string]*map[string]cty.Value, evalValsNested *map[string]*map[string]*map[string]cty.Value) map[string]cty.Value {
 	// declare inputsMap with default "plugin_enabled" = true
 	// the rest is pulled from the specific plugin's HCL file "input" blocks
 	// ex: "internal/app/decker/plugins/nslookup/nslookup.hcl"
@@ -130,25 +132,30 @@ func CreateInputsMapCty(inputs []PluginInputConfig, attributes hcl.Attributes, e
 
 	for _, element := range inputs {
 		hclInputs[element.Name] = element
+		// log.Trace("Element:", element)
 	}
 
 	// create a map of attribute names to inputs and get Input.Type to determine
 	// which DecodeHCL...Attribute function to call
 	// pass in default in case parsing fails
-	for key, attribute := range attributes {
-		inputType := hclInputs[key].Type
-		inputDefault := hclInputs[key].Default
+	for k, attribute := range attributes {
+		inputType := hclInputs[k].Type
+		inputDefault := hclInputs[k].Default
 
-		if key != "for_each" {
+		if k != "for_each" {
 			if inputType == "list" {
-				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
+				inputsMap[k] = DecodeHCLAttributeCty(attribute, key, envVals, evalVals, evalValsNested, inputDefault)
 			} else if inputType == "map" {
-				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
+				inputsMap[k] = DecodeHCLAttributeCty(attribute, key, envVals, evalVals, evalValsNested, inputDefault)
 			} else {
 				// strings and booleans
-				inputsMap[key] = DecodeHCLAttributeCty(attribute, envVals, evalVals, evalValsNested, inputDefault)
+				inputsMap[k] = DecodeHCLAttributeCty(attribute, key, envVals, evalVals, evalValsNested, inputDefault)
 			}
 		}
+		// inputsMap["each"] =  EncodeCty(key)
+		// else {
+		// 	inputsMap["each"] = cty.StringVal("true")
+		// }
 	}
 
 	return inputsMap

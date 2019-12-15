@@ -7,8 +7,10 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 	"gonum.org/v1/gonum/graph/topo"
 
-	"github.com/stevenaldinger/decker/internal/pkg/hcl"
-	"github.com/stevenaldinger/decker/internal/pkg/paths"
+	"github.com/stevenaldinger/decker/pkg/hcl"
+	"github.com/stevenaldinger/decker/pkg/paths"
+
+	// log "github.com/sirupsen/logrus"
 )
 
 func addNodesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, resourceIDs *map[string]int64, resourceNodes *map[int64]ResourceNode) {
@@ -60,7 +62,7 @@ func addEdgesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, re
 					dependentOn := exprVar.RootName()
 
 					// add node edge if the dependency is on something other than var
-					if dependentOn != "var" {
+					if dependentOn != "var" && dependentOn != "each" {
 						// fmt.Println(fmt.Sprintf("Dependency detected: %s dependent on %s", block.Labels[1], dependentOn))
 
 						dag.SetEdge(ResourceEdge{
@@ -78,12 +80,15 @@ func addEdgesToGraph(dag *simple.DirectedGraph, blocks []*hashicorpHCL.Block, re
 
 			if containsForEach {
 				_, pluginContent := hcl.GetPluginContent(containsForEach, block, pluginHCLPath)
-				dependentOn := pluginContent.Attributes["for_each"].Expr.Variables()[0].RootName()
-				if dependentOn != "var" {
-					dag.SetEdge(ResourceEdge{
-						from: (*resourceNodes)[(*resourceIDs)[dependentOn]],
-						to:   resourceNode,
-					})
+				dependentOnVariables := pluginContent.Attributes["for_each"].Expr.Variables()
+				if len(dependentOnVariables) > 0 {
+					dependentOn := dependentOnVariables[0].RootName()
+					if dependentOn != "var" {
+						dag.SetEdge(ResourceEdge{
+							from: (*resourceNodes)[(*resourceIDs)[dependentOn]],
+							to:   resourceNode,
+						})
+					}
 				}
 			}
 
