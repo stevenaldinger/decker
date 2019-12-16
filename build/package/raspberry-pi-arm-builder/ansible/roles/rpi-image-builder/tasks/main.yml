@@ -1,0 +1,13 @@
+---
+# download the latest each time this runs
+- name: Clone a kali-arm repository
+  git:
+    repo: https://github.com/stevenaldinger/kali-arm.git
+    dest: /arm/kali-arm
+    version: kali-vm-scripts
+    update: yes
+
+- name: Build raspberry image
+  command:
+    cmd: ./rpi.sh 2019.3
+    chdir: /arm/kali-arm

@@ -1,0 +1,24 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-ovf",
+      "source_path": "output-virtualbox-iso/packer-virtualbox-iso-1576466517.ovf",
+      "ssh_username": "root",
+      "ssh_password": "toor",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "10000s",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", 11012],
+        ["modifyvm", "{{.Name}}", "--cpus", 8]
+      ],
+      "boot_wait": "10s",
+      "headless": false
+    }
+  ],
+  "provisioners" : [{
+    "type" : "ansible",
+    "playbook_file" : "ansible/pack-rpi-image.yml",
+    "host_alias": "packer-host"
+  }]
+}

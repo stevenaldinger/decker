@@ -1,0 +1,73 @@
+---
+- name: Install packages
+  apt:
+    name: ['apt-transport-https', 'ca-certificates', 'git', 'gnupg']
+    state: present
+    update_cache: true
+
+- name: Create parent directories
+  file:
+    path: /arm/arm-stuff/kernel/toolchains/
+    state: directory
+
+- name: Clone a kali-arm repository
+  git:
+    repo: https://github.com/stevenaldinger/kali-arm.git
+    dest: /arm/kali-arm
+    version: kali-vm-scripts
+
+- name: Clone gcc arm toolchain
+  git:
+    repo: https://gitlab.com/kalilinux/packages/gcc-arm-eabi-linaro-4-6-2.git
+    dest: /arm/arm-stuff/kernel/toolchains/gcc-arm-eabi-linaro-4-6-2
+    version: master
+
+- name: Install dependencies
+  command:
+    cmd: ./build-deps.sh
+    chdir: /arm/kali-arm
+
+- name: Download golang 1.13
+  get_url:
+    url: https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
+    dest: /tmp/go1.13.5.linux-amd64.tar.gz
+    checksum: sha256:512103d7ad296467814a6e3f635631bd35574cab3369a97a323c9a585ccaa569
+
+- name: Extract golang 1.13
+  unarchive:
+    src: /tmp/go1.13.5.linux-amd64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+
+# Install Google Cloud SDK
+- name: Add the Cloud SDK distribution URI as a package source
+  copy:
+    dest: "/etc/apt/sources.list.d/google-cloud-sdk.list"
+    content: |
+      deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main
+
+- name: Download Google Cloud's public key
+  get_url:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    dest: /tmp/google-apt-key.gpg
+    checksum: sha256:1fe629470162c72777c1ed5e5b0f392acf403cf6a374cb229cf76109b5c90ed5
+
+- name: Import Google Cloud's key
+  apt_key:
+    file: /tmp/google-apt-key.gpg
+    state: present
+    keyring: /usr/share/keyrings/cloud.google.gpg
+
+- name: Install Google Cloud SDK
+  apt:
+    name: google-cloud-sdk=273.0.0-0
+    state: present
+    update_cache: yes
+
+- name: Clean up tmp files
+  file:
+    path: "/tmp/{{ item }}"
+    state: absent
+  with_items:
+  - go1.13.5.linux-amd64.tar.gz
+  - google-apt-key.gpg

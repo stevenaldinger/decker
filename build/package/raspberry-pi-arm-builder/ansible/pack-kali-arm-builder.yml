@@ -1,0 +1,10 @@
+---
+- name: Provision Raspberry Pi Kali Image Builder
+  hosts: all
+  remote_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/go/bin"
+    ARCH: arm
+    CROSS_COMPILE: /arm/arm-stuff/kernel/toolchains/gcc-arm-eabi-linaro-4.6.2/bin/arm-eabi-
+  roles:
+  - kali-arm-builder
