@@ -2,6 +2,7 @@
   "builders": [
     {
       "type": "virtualbox-iso",
+      "vm_name": "kali-linux-iso",
       "guest_os_type": "Debian_64",
       "iso_url": "https://storage.googleapis.com/decker/kali-linux-2019-4-amd64-iso/kali-linux-2019.4-amd64.iso",
   		"iso_checksum": "bad0d602a531b872575e23cc025b45fee475523b51378a035928b733ca395ac5",

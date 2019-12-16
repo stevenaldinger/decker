@@ -2,7 +2,7 @@
   "builders": [
     {
       "type": "virtualbox-ovf",
-      "source_path": "output-virtualbox-iso/packer-virtualbox-iso-1576466517.ovf",
+      "source_path": "output-virtualbox-iso/kali-linux-iso.ovf",
       "ssh_username": "root",
       "ssh_password": "toor",
       "ssh_port": 22,

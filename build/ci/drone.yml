@@ -5,21 +5,28 @@ workspace:
   base: /go
   path: src/github.com/stevenaldinger/decker
 steps:
-- name: packer
+- name: packer-kali
   image: appleboy/drone-packer
   template: build/package/raspberry-pi-arm-builder/packer.json
   actions:
   - validate
   - build
 
-- name: upload ovf file
+- name: upload-ovf-file
   image: plugins/gcs
   settings:
-    source: build/package/raspberry-pi-arm-builder/output-virtualbox-iso/packer-virtualbox-iso-*.ovf
+    source: build/package/raspberry-pi-arm-builder/output-virtualbox-iso/kali-linux-iso.ovf
     target: decker/kali-linux-2019-4-amd64-iso/
     acl: allUsers:READER
     token:
       from_secret: google-cloud-gcs-sa
+
+- name: packer-raspberry
+  image: appleboy/drone-packer
+  template: build/package/raspberry-pi-arm-builder/packer.rpi.json
+  actions:
+  - validate
+  - build
 
 - name: build-minimal
   image: plugins/docker
