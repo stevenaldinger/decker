@@ -9,7 +9,7 @@ steps:
   image: appleboy/drone-packer
   template: build/package/raspberry-pi-arm-builder/packer.json
   actions:
-  - validate
+  # - validate
   - build
 
 - name: upload-ovf-file
@@ -25,7 +25,7 @@ steps:
   image: appleboy/drone-packer
   template: build/package/raspberry-pi-arm-builder/packer.rpi.json
   actions:
-  - validate
+  # - validate
   - build
 
 - name: build-minimal
