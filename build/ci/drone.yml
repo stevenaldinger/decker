@@ -5,13 +5,24 @@ workspace:
   base: /go
   path: src/github.com/stevenaldinger/decker
 steps:
+- name: no
+  image: golang:1.13.0
+  commands:
+  - ls -al
+  - echo "build:"
+  - ls -al ./build
+  - echo "build/package:"
+  - ls -al ./build/package
+  - echo "build/package/raspberry-pi-arm-builder:"
+  - ls -al ./build/package/raspberry-pi-arm-builder/
 - name: packer-kali
   image: appleboy/drone-packer
-  template: packer.json
-  context: ./build/package/raspberry-pi-arm-builder/
-  actions:
-  # - validate
-  - build
+  settings:
+    template: packer.json
+    context: build/package/raspberry-pi-arm-builder/
+    actions:
+    - validate
+    - build
 
 - name: upload-ovf-file
   image: plugins/gcs
@@ -24,75 +35,76 @@ steps:
 
 - name: packer-raspberry
   image: appleboy/drone-packer
-  template: packer.rpi.json
-  context: ./build/package/raspberry-pi-arm-builder/
-  actions:
-  # - validate
-  - build
+  settings:
+    template: packer.rpi.json
+    context: build/package/raspberry-pi-arm-builder/
+    actions:
+    - validate
+    - build
 
-- name: build-minimal
-  image: plugins/docker
-  settings:
-    repo: stevenaldinger/decker
-    dockerfile: build/package/minimal.Dockerfile
-    auto_tag: true
-    auto_tag_suffix: minimal
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
-- name: build-kali
-  image: plugins/docker
-  settings:
-    repo: stevenaldinger/decker
-    dockerfile: build/package/kali.Dockerfile
-    auto_tag: true
-    auto_tag_suffix: kali
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
+# - name: build-minimal
+#   image: plugins/docker
+#   settings:
+#     repo: stevenaldinger/decker
+#     dockerfile: build/package/minimal.Dockerfile
+#     auto_tag: true
+#     auto_tag_suffix: minimal
+#     username:
+#       from_secret: docker_username
+#     password:
+#       from_secret: docker_password
+# - name: build-kali
+#   image: plugins/docker
+#   settings:
+#     repo: stevenaldinger/decker
+#     dockerfile: build/package/kali.Dockerfile
+#     auto_tag: true
+#     auto_tag_suffix: kali
+#     username:
+#       from_secret: docker_username
+#     password:
+#       from_secret: docker_password
 
 trigger:
   event:
-  - tag
----
-kind: pipeline
-name: master
-workspace:
-  base: /go
-  path: src/github.com/stevenaldinger/decker
-steps:
-- name: build-minimal
-  image: plugins/docker
-  settings:
-    repo: stevenaldinger/decker
-    dockerfile: build/package/minimal.Dockerfile
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
-    tags:
-    - minimal
-    when:
-      branch:
-      - master
-      event:
-      - push
-- name: build-kali
-  image: plugins/docker
-  settings:
-    repo: stevenaldinger/decker
-    dockerfile: build/package/kali.Dockerfile
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
-    tags:
-    - latest
-    - kali
-    when:
-      branch:
-      - master
-      event:
-      - push
+  - push
+# ---
+# kind: pipeline
+# name: master
+# workspace:
+#   base: /go
+#   path: src/github.com/stevenaldinger/decker
+# steps:
+# - name: build-minimal
+#   image: plugins/docker
+#   settings:
+#     repo: stevenaldinger/decker
+#     dockerfile: build/package/minimal.Dockerfile
+#     username:
+#       from_secret: docker_username
+#     password:
+#       from_secret: docker_password
+#     tags:
+#     - minimal
+#     when:
+#       branch:
+#       - master
+#       event:
+#       - push
+# - name: build-kali
+#   image: plugins/docker
+#   settings:
+#     repo: stevenaldinger/decker
+#     dockerfile: build/package/kali.Dockerfile
+#     username:
+#       from_secret: docker_username
+#     password:
+#       from_secret: docker_password
+#     tags:
+#     - latest
+#     - kali
+#     when:
+#       branch:
+#       - master
+#       event:
+#       - push
