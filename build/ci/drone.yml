@@ -7,7 +7,8 @@ workspace:
 steps:
 - name: packer-kali
   image: appleboy/drone-packer
-  template: build/package/raspberry-pi-arm-builder/packer.json
+  template: packer.json
+  context: ./build/package/raspberry-pi-arm-builder/
   actions:
   # - validate
   - build
@@ -23,7 +24,8 @@ steps:
 
 - name: packer-raspberry
   image: appleboy/drone-packer
-  template: build/package/raspberry-pi-arm-builder/packer.rpi.json
+  template: packer.rpi.json
+  context: ./build/package/raspberry-pi-arm-builder/
   actions:
   # - validate
   - build
