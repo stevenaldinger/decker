@@ -7,6 +7,7 @@ workspace:
 steps:
 - name: packer-kali
   image: stevenaldinger/drone-packer-ansible:latest
+  privileged: true
   settings:
     template: packer.json
     context: build/package/raspberry-pi-arm-builder/
@@ -25,6 +26,7 @@ steps:
 
 - name: packer-raspberry
   image: stevenaldinger/drone-packer-ansible:latest
+  privileged: true
   settings:
     template: packer.rpi.json
     context: build/package/raspberry-pi-arm-builder/
