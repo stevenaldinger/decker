@@ -7,30 +7,36 @@ workspace:
 steps:
 - name: packer-kali
   image: stevenaldinger/drone-packer-ansible:latest
+  debug: true
   settings:
     template: packer.json
     context: build/package/raspberry-pi-arm-builder/
     actions:
     - validate
     - build
+    debug: true
 
 - name: upload-ovf-file
   image: plugins/gcs
+  debug: true
   settings:
     source: build/package/raspberry-pi-arm-builder/output-virtualbox-iso/kali-linux-iso.ovf
     target: decker/kali-linux-2019-4-amd64-iso/
     acl: allUsers:READER
     token:
       from_secret: google-cloud-gcs-sa
+    debug: true
 
 - name: packer-raspberry
   image: stevenaldinger/drone-packer-ansible:latest
+  debug: true
   settings:
     template: packer.rpi.json
     context: build/package/raspberry-pi-arm-builder/
     actions:
     - validate
     - build
+    debug: true
 
 # - name: build-minimal
 #   image: plugins/docker
