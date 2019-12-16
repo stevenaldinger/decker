@@ -5,16 +5,6 @@ workspace:
   base: /go
   path: src/github.com/stevenaldinger/decker
 steps:
-- name: no
-  image: golang:1.13.0
-  commands:
-  - ls -al
-  - echo "build:"
-  - ls -al ./build
-  - echo "build/package:"
-  - ls -al ./build/package
-  - echo "build/package/raspberry-pi-arm-builder:"
-  - ls -al ./build/package/raspberry-pi-arm-builder/
 - name: packer-kali
   image: stevenaldinger/drone-packer-ansible:latest
   settings:
