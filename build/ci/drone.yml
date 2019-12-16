@@ -16,7 +16,7 @@ steps:
   - echo "build/package/raspberry-pi-arm-builder:"
   - ls -al ./build/package/raspberry-pi-arm-builder/
 - name: packer-kali
-  image: appleboy/drone-packer
+  image: stevenaldinger/drone-packer-ansible:latest
   settings:
     template: packer.json
     context: build/package/raspberry-pi-arm-builder/
@@ -34,7 +34,7 @@ steps:
       from_secret: google-cloud-gcs-sa
 
 - name: packer-raspberry
-  image: appleboy/drone-packer
+  image: stevenaldinger/drone-packer-ansible:latest
   settings:
     template: packer.rpi.json
     context: build/package/raspberry-pi-arm-builder/
