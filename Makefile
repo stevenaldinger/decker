@@ -32,6 +32,13 @@ build_decker:
 
 build_all: build_plugins build_decker
 
+build_decker_arm:
+	@cd $(BASE_DIR)/cmd/decker && \
+		echo "Building" $(APP_NAME) && \
+		CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -installsuffix cgo -ldflags="-w -s" -o $(BASE_DIR)/$(APP_NAME)
+
+build_all_arm: build_plugins build_decker_arm
+
 docker_build:
 	@docker build -f ./build/package/kali.Dockerfile -t stevenaldinger/$(APP_NAME):latest .
 
@@ -100,18 +107,18 @@ govet:
 lint: gofmt golint govet
 # ========================== [END] Formatting Script ========================= #
 test_by_pkg:
-	@go test -v github.com/stevenaldinger/decker/internal/pkg/dependencies
-	@go test -v github.com/stevenaldinger/decker/internal/pkg/hcl
-	@go test -v github.com/stevenaldinger/decker/internal/pkg/paths
-	@go test -v github.com/stevenaldinger/decker/internal/pkg/plugins
-	@go test -v github.com/stevenaldinger/decker/internal/pkg/reports
+	@go test -v github.com/stevenaldinger/decker/pkg/dependencies
+	@go test -v github.com/stevenaldinger/decker/pkg/hcl
+	@go test -v github.com/stevenaldinger/decker/pkg/paths
+	@go test -v github.com/stevenaldinger/decker/pkg/plugins
+	@go test -v github.com/stevenaldinger/decker/pkg/reports
 
 cvg_by_pkg:
-	@go test -v -cover github.com/stevenaldinger/decker/internal/pkg/dependencies
-	@go test -v -cover github.com/stevenaldinger/decker/internal/pkg/hcl
-	@go test -v -cover github.com/stevenaldinger/decker/internal/pkg/paths
-	@go test -v -cover github.com/stevenaldinger/decker/internal/pkg/plugins
-	@go test -v -cover github.com/stevenaldinger/decker/internal/pkg/reports
+	@go test -v -cover github.com/stevenaldinger/decker/pkg/dependencies
+	@go test -v -cover github.com/stevenaldinger/decker/pkg/hcl
+	@go test -v -cover github.com/stevenaldinger/decker/pkg/paths
+	@go test -v -cover github.com/stevenaldinger/decker/pkg/plugins
+	@go test -v -cover github.com/stevenaldinger/decker/pkg/reports
 
 gotest: test_by_pkg
 	@cd $(BASE_DIR)/cmd/decker && \
